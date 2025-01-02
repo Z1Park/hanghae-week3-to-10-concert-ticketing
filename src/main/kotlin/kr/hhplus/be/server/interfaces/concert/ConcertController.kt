@@ -1,9 +1,8 @@
 package kr.hhplus.be.server.interfaces.concert
 
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import kr.hhplus.be.server.exception.ForbiddenException
+import kr.hhplus.be.server.exception.UnauthorizedException
+import org.springframework.web.bind.annotation.*
 import java.time.ZonedDateTime
 
 @RestController
@@ -11,7 +10,13 @@ import java.time.ZonedDateTime
 class ConcertController {
 
     @GetMapping("")
-    fun getConcertInformation(): ConcertInformationResponse {
+    fun getConcertInformation(
+        @CookieValue("user-access-token") userAccessToken: String?,
+        @CookieValue("concert-access-token") concertAccessToken: String?
+    ): ConcertInformationResponse {
+        require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+        require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
+
         return ConcertInformationResponse(
             mutableListOf(
                 ConcertInformationDto(1L, "아이유의 연말 콘서트", "아이유"),
@@ -21,7 +26,14 @@ class ConcertController {
     }
 
     @GetMapping("/{concertId}/schedules")
-    fun getConcertSchedules(@PathVariable concertId: String): ConcertScheduleResponse {
+    fun getConcertSchedules(
+        @CookieValue("user-access-token") userAccessToken: String?,
+        @CookieValue("concert-access-token") concertAccessToken: String?,
+        @PathVariable concertId: String
+    ): ConcertScheduleResponse {
+        require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+        require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
+
         val now = ZonedDateTime.now()
         return ConcertScheduleResponse(
             mutableListOf(
@@ -33,9 +45,14 @@ class ConcertController {
 
     @GetMapping("/{concertId}/schedules/{scheduleId}/sections")
     fun getConcertSections(
+        @CookieValue("user-access-token") userAccessToken: String?,
+        @CookieValue("concert-access-token") concertAccessToken: String?,
         @PathVariable concertId: String,
         @PathVariable scheduleId: String
     ): ConcertSectionResponse {
+        require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+        require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
+
         return ConcertSectionResponse(
             "항해 콘서트장",
             "서울특별시 항해구 항해로 123번길",
@@ -49,10 +66,15 @@ class ConcertController {
 
     @GetMapping("/{concertId}/schedules/{scheduleId}/sections/{sectionId}/seats")
     fun getConcertSeats(
+        @CookieValue("user-access-token") userAccessToken: String?,
+        @CookieValue("concert-access-token") concertAccessToken: String?,
         @PathVariable concertId: String,
         @PathVariable scheduleId: String,
         @PathVariable sectionId: String
     ): ConcertSeatResponse {
+        require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+        require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
+
         return ConcertSeatResponse(
             mutableListOf(
                 ConcertSeatDto(1384L, 131, 150000),
