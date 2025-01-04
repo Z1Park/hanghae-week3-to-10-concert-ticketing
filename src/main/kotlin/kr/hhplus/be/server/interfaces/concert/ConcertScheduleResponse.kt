@@ -8,6 +8,9 @@ data class ConcertScheduleResponse(
 
 data class ConcertScheduleDto(
     val concertScheduleId: Long,
+    val concertPlace: String,
+    val concertLocation: String,
+    val totalSeat: Int,
     val startAt: ZonedDateTime,
     val endAt: ZonedDateTime
 )

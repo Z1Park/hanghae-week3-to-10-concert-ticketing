@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/tokens")
 class QueueController {
 
-    @PostMapping("")
-    fun publishQueueToken(
-        @CookieValue("user-access-token") userAccessToken: String?
-    ): ResponseEntity<Unit> {
-        require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+	@Operation(
+		summary = "대기열 토큰 발급 API",
+		description = "대기열 토큰을 발급하고 대기열에 유저를 등록",
+	)
+	@PostMapping("")
+	fun issueQueueToken(
+		@CookieValue("user-access-token") userAccessToken: String?
+	): ResponseEntity<Unit> {
+		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
 
         return ResponseEntity.status(HttpStatus.CREATED)
             .header(
