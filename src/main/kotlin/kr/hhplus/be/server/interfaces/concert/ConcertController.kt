@@ -1,14 +1,21 @@
 package kr.hhplus.be.server.interfaces.concert
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.exception.ForbiddenException
 import kr.hhplus.be.server.exception.UnauthorizedException
 import org.springframework.web.bind.annotation.*
 import java.time.ZonedDateTime
 
+@Tag(name = "콘서트")
 @RestController
 @RequestMapping("/concerts")
 class ConcertController {
 
+	@Operation(
+		summary = "콘서트 정보 조회 API",
+		description = "조회된 여러 콘서트의 정보를 반환",
+	)
 	@GetMapping("")
 	fun getConcertInformation(
 		@CookieValue("user-access-token") userAccessToken: String?,
@@ -25,6 +32,10 @@ class ConcertController {
 		)
 	}
 
+	@Operation(
+		summary = "콘서트 일정 조회 API",
+		description = "콘서트의 일정 정보를 반환",
+	)
 	@GetMapping("/{concertId}/schedules")
 	fun getConcertSchedules(
 		@CookieValue("user-access-token") userAccessToken: String?,
@@ -57,6 +68,10 @@ class ConcertController {
 		)
 	}
 
+	@Operation(
+		summary = "콘서트 좌석 조회 API",
+		description = "콘서트의 좌석 정보를 반환",
+	)
 	@GetMapping("/{concertId}/schedules/{scheduleId}/seats")
 	fun getConcertSeats(
 		@CookieValue("user-access-token") userAccessToken: String?,
