@@ -2,8 +2,8 @@ package kr.hhplus.be.server.interfaces.queue
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.exception.ForbiddenException
-import kr.hhplus.be.server.exception.UnauthorizedException
+import kr.hhplus.be.server.interfaces.exception.ForbiddenException
+import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie

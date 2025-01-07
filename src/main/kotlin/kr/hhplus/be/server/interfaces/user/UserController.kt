@@ -2,8 +2,9 @@ package kr.hhplus.be.server.interfaces.user
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.exception.UnauthorizedException
-import org.apache.coyote.BadRequestException
+import kr.hhplus.be.server.application.user.UserFacadeService
+import kr.hhplus.be.server.common.UuidGenerator
+import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "유저")
 @RestController
 @RequestMapping("/users")
-class UserController {
+class UserController(
+	private val userFacadeService: UserFacadeService,
+	private val uuidGenerator: UuidGenerator
+) {
 
 	@Operation(
 		summary = "유저 토큰 발급 요청 API",
@@ -21,12 +25,12 @@ class UserController {
 	)
 	@PostMapping("/{userId}")
 	fun issueUserToken(@PathVariable userId: Long): ResponseEntity<Unit> {
-		require(userId != 0L) { throw BadRequestException() }
+		val issuedUserToken = userFacadeService.issueUserToken(userId, uuidGenerator)
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
 				SET_COOKIE,
-				ResponseCookie.from("user-access-token", "EI9137BFKJD98").build().toString()
+				ResponseCookie.from("user-access-token", issuedUserToken).build().toString()
 			)
 			.body(Unit)
 	}

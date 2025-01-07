@@ -2,9 +2,9 @@ package kr.hhplus.be.server.interfaces.reservation
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.exception.ConflictException
-import kr.hhplus.be.server.exception.ForbiddenException
-import kr.hhplus.be.server.exception.UnauthorizedException
+import kr.hhplus.be.server.interfaces.exception.ConflictException
+import kr.hhplus.be.server.interfaces.exception.ForbiddenException
+import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import org.apache.coyote.BadRequestException
 import org.springframework.web.bind.annotation.*
 import java.time.ZonedDateTime
