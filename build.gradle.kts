@@ -60,6 +60,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("org.instancio:instancio-junit:5.2.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
