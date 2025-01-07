@@ -2,8 +2,12 @@ package kr.hhplus.be.server.interfaces.queue
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.application.queue.QueueFacadeService
+import kr.hhplus.be.server.common.UuidV4Generator
+import kr.hhplus.be.server.domain.user.User
 import kr.hhplus.be.server.interfaces.exception.ForbiddenException
 import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
+import kr.hhplus.be.server.interfaces.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -13,7 +17,10 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "대기열")
 @RestController
 @RequestMapping("/tokens")
-class QueueController {
+class QueueController(
+	private val queueFacadeService: QueueFacadeService,
+	private val uuidGenerator: UuidV4Generator
+) {
 
 	@Operation(
 		summary = "대기열 토큰 발급 API",
@@ -21,14 +28,14 @@ class QueueController {
 	)
 	@PostMapping("")
 	fun issueQueueToken(
-		@CookieValue("user-access-token") userAccessToken: String?
+		@UserToken tokenUser: User
 	): ResponseEntity<Unit> {
-		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+		val issuedQueueToken = queueFacadeService.issueQueueToken(tokenUser.userUUID, uuidGenerator)
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
 				SET_COOKIE,
-				ResponseCookie.from("concert-access-token", "DH8FF4NKJD082").build().toString()
+				ResponseCookie.from("concert-access-token", issuedQueueToken).build().toString()
 			)
 			.body(Unit)
 	}
