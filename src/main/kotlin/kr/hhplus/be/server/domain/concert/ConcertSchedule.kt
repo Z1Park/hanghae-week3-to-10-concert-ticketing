@@ -19,7 +19,7 @@ class ConcertSchedule(
 	@Column(name = "concert_id", nullable = false)
 	val concertId: Long,
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "concertSchedule")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "concertScheduleId")
 	val concertSeats: List<ConcertSeat> = mutableListOf()
 ) : BaseEntity() {
 }

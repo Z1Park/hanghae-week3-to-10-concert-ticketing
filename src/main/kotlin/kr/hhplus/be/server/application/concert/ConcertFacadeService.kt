@@ -10,8 +10,11 @@ class ConcertFacadeService(
 ) {
 
 	fun getConcertInformation(): List<ConcertInfo.Concert> =
-		concertService.getConcertInformation()
+		concertService.getConcert()
 
 	fun getConcertScheduleInformation(concertId: Long): List<ConcertInfo.Schedule> =
 		concertService.getConcertSchedule(concertId)
+
+	fun getConcertSeatInformation(concertId: Long, concertScheduleId: Long): List<ConcertInfo.Seat> =
+		concertService.getConcertSeat(concertId, concertScheduleId)
 }

@@ -33,7 +33,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findAllConcert(false)).then { concerts }
 
 		// when
-		val actual = sut.getConcertInformation()
+		val actual = sut.getConcert()
 
 		//then
 		verify(concertRepository).findAllConcert(false)
@@ -84,6 +84,44 @@ class ConcertServiceUnitTest {
 			.hasMessage("Concert 엔티티를 찾을 수 없습니다. Id=201")
 	}
 
+	@Test
+	fun `콘서트 좌석 조회 시, 콘서트 일정 id에 해당하는 좌석을 조회하고 그 결과를 반환한다`() {
+		// given
+		val scheduleId = 123L
+
+		val seat1 = createSeat(101L, scheduleId, 1)
+		val seat2 = createSeat(102L, scheduleId, 2)
+		val seat3 = createSeat(103L, scheduleId, 3)
+		val seats = listOf(seat1, seat2, seat3)
+		val schedule = createSchedule(scheduleId, 13L, seats)
+
+		`when`(concertRepository.findScheduleWithSeat(scheduleId))
+			.then { schedule }
+
+		// when
+		val actual = sut.getConcertSeat(1L, scheduleId)
+
+		//then
+		assertThat(actual).hasSize(3)
+			.allMatch { it.concertScheduleId == scheduleId }
+			.anyMatch { it.seatId == 101L && it.seatNumber == 1 }
+			.anyMatch { it.seatId == 102L && it.seatNumber == 2 }
+			.anyMatch { it.seatId == 103L && it.seatNumber == 3 }
+	}
+
+	@Test
+	fun `콘서트 좌석 조회 시, 없는 콘서트 일정 id로 조회하면 EntityNotFoundException이 발생한다`() {
+		// given
+		val concertScheduleId = 202L
+		`when`(concertRepository.findScheduleWithSeat(concertScheduleId))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.getConcertSeat(1L, concertScheduleId) }
+			.isInstanceOf(EntityNotFoundException::class.java)
+			.hasMessage("ConcertSchedule 엔티티를 찾을 수 없습니다. Id=202")
+	}
+
 	private fun createConcert(id: Long, title: String, provider: String, schedules: List<ConcertSchedule> = listOf()): Concert =
 		Instancio.of(Concert::class.java)
 			.set(field(Concert::id), id)
@@ -93,9 +131,17 @@ class ConcertServiceUnitTest {
 			.set(field(Concert::concertSchedules), schedules)
 			.create()
 
-	private fun createSchedule(id: Long, concertId: Long): ConcertSchedule =
+	private fun createSchedule(id: Long, concertId: Long, seats: List<ConcertSeat> = listOf()): ConcertSchedule =
 		Instancio.of(ConcertSchedule::class.java)
 			.set(field(ConcertSchedule::id), id)
 			.set(field(ConcertSchedule::concertId), concertId)
+			.set(field(ConcertSchedule::concertSeats), seats)
+			.create()
+
+	private fun createSeat(id: Long, scheduleId: Long, seatNumber: Int): ConcertSeat =
+		Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), id)
+			.set(field(ConcertSeat::concertScheduleId), scheduleId)
+			.set(field(ConcertSeat::seatNumber), seatNumber)
 			.create()
 }

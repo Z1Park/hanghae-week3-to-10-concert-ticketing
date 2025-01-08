@@ -29,8 +29,15 @@ class ConcertInfo {
 	}
 
 	data class Seat(
+		val concertId: Long,
+		val concertScheduleId: Long,
 		val seatId: Long,
 		val seatNumber: Int,
 		val price: Int
-	)
+	) {
+		companion object {
+			fun of(concertId: Long, seat: ConcertSeat) =
+				Seat(concertId, seat.concertScheduleId, seat.id, seat.seatNumber, seat.price)
+		}
+	}
 }

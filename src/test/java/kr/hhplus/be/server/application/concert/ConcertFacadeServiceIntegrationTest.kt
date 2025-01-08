@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.concert
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.domain.concert.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
@@ -77,5 +78,37 @@ class ConcertFacadeServiceIntegrationTest(
 			.anyMatch { it.concertScheduleId == schedule2.id }
 			.anyMatch { it.concertScheduleId == schedule4.id }
 			.anyMatch { it.concertScheduleId == schedule5.id }
+	}
+
+	@Test
+	fun `콘서트 좌석 조회 시, 여러 콘서트 일정 중 concertScheduleId가 일치하는 콘서트의 좌석 정보만 반환한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 8, 17, 55, 50)
+		val schedule1 = ConcertSchedule(50, testTime, testTime.plusHours(1), 101L)
+		val schedule2 = ConcertSchedule(50, testTime, testTime.plusHours(2), 101L)
+		concertScheduleJpaRepository.saveAll(listOf(schedule1, schedule2))
+
+		val seat1 = ConcertSeat(1, 15000, schedule1.id)
+		val seat2 = ConcertSeat(2, 15000, schedule2.id)
+		val seat3 = ConcertSeat(3, 15000, schedule2.id)
+		val seat4 = ConcertSeat(4, 15000, schedule1.id)
+		val seat5 = ConcertSeat(5, 15000, schedule2.id)
+		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4, seat5))
+
+		// when
+		val actual = sut.getConcertSeatInformation(101L, schedule1.id)
+
+		//then
+		assertThat(actual).hasSize(2)
+			.allMatch { it.concertId == 101L }
+
+			.allMatch { it.concertScheduleId == schedule1.id }
+			.noneMatch { it.concertScheduleId == schedule2.id }
+
+			.noneMatch { it.seatId == seat2.id }
+			.noneMatch { it.seatId == seat3.id }
+			.noneMatch { it.seatId == seat5.id }
+			.anyMatch { it.seatId == seat1.id }
+			.anyMatch { it.seatId == seat4.id }
 	}
 }

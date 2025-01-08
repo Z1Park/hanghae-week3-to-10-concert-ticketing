@@ -3,11 +3,12 @@ package kr.hhplus.be.server.interfaces.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.concert.ConcertFacadeService
-import kr.hhplus.be.server.interfaces.exception.ForbiddenException
-import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import kr.hhplus.be.server.interfaces.resolver.QueueToken
 import kr.hhplus.be.server.interfaces.resolver.UserToken
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "콘서트")
 @RestController
@@ -19,7 +20,10 @@ class ConcertController(private val concertFacadeService: ConcertFacadeService) 
 		description = "조회된 여러 콘서트의 정보를 반환",
 	)
 	@GetMapping("")
-	fun getConcertInformation(@UserToken userToken: String, @QueueToken queueToken: String): ConcertInformationResponse {
+	fun getConcertInformation(
+		@UserToken userToken: String,
+		@QueueToken queueToken: String
+	): ConcertInformationResponse {
 		val concertInformation = concertFacadeService.getConcertInformation()
 
 		return ConcertInformationResponse.from(concertInformation)
@@ -31,8 +35,8 @@ class ConcertController(private val concertFacadeService: ConcertFacadeService) 
 	)
 	@GetMapping("/{concertId}/schedules")
 	fun getConcertSchedules(
-		@UserToken userUUID: String,
-		@QueueToken tokenUUID: String,
+		@UserToken userToken: String,
+		@QueueToken queueToken: String,
 		@PathVariable concertId: Long
 	): ConcertScheduleResponse {
 		val concertScheduleInformation = concertFacadeService.getConcertScheduleInformation(concertId)
@@ -46,19 +50,13 @@ class ConcertController(private val concertFacadeService: ConcertFacadeService) 
 	)
 	@GetMapping("/{concertId}/schedules/{scheduleId}/seats")
 	fun getConcertSeats(
-		@CookieValue("user-access-token") userAccessToken: String?,
-		@CookieValue("concert-access-token") concertAccessToken: String?,
-		@PathVariable concertId: String,
-		@PathVariable scheduleId: String
+		@UserToken userToken: String,
+		@QueueToken queueToken: String,
+		@PathVariable concertId: Long,
+		@PathVariable scheduleId: Long
 	): ConcertSeatResponse {
-		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
-		require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
+		val concertSeatInformation = concertFacadeService.getConcertSeatInformation(concertId, scheduleId)
 
-		return ConcertSeatResponse(
-			mutableListOf(
-				ConcertSeatDto(1384L, 131, 150000),
-				ConcertSeatDto(1385L, 132, 150000),
-			)
-		)
+		return ConcertSeatResponse.from(concertSeatInformation)
 	}
 }

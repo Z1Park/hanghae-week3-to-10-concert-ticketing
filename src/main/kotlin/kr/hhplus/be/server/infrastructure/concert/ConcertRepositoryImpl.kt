@@ -2,6 +2,7 @@ package kr.hhplus.be.server.infrastructure.concert
 
 import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.domain.concert.ConcertRepository
+import kr.hhplus.be.server.domain.concert.ConcertSchedule
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -16,4 +17,7 @@ class ConcertRepositoryImpl(
 
 	override fun findConcertWithSchedule(concertId: Long): Concert? =
 		concertJpaRepository.findByIdWithSchedule(concertId)
+
+	override fun findScheduleWithSeat(scheduleId: Long): ConcertSchedule? =
+		concertScheduleJpaRepository.findByIdWithSeat(scheduleId)
 }

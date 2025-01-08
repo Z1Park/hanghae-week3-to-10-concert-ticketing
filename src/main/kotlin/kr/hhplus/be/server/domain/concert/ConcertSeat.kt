@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.concert
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.BaseEntity
 
 @Entity
@@ -12,8 +14,7 @@ class ConcertSeat(
 	@Column(nullable = false)
 	var price: Int,
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "concert_schedule_id", nullable = false)
-	val concertSchedule: ConcertSchedule
+	@Column(name = "concert_schedule_id", nullable = false)
+	val concertScheduleId: Long
 ) : BaseEntity() {
 }
