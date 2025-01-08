@@ -20,7 +20,7 @@ class QueueService(
 
 	fun findLastActivatedQueue(): Queue? {
 		val pageable = PageRequest.of(0, 1)
-		val allActivatedQueue = queueRepository.findAllFromLastActivatedQueue(pageable)
+		val allActivatedQueue = queueRepository.findAllOrderByCreatedAtDesc(QueueActiveStatus.ACTIVATED, pageable)
 		return allActivatedQueue.maxByOrNull { it.createdAt }
 	}
 
@@ -34,5 +34,13 @@ class QueueService(
 	fun createNewQueueToken(userUUID: String, tokenUUID: String): Queue {
 		val queue = Queue.createNewToken(userUUID, tokenUUID)
 		return queueRepository.save(queue)
+	}
+
+	fun activateTokens(clockHolder: ClockHolder) {
+		val pageable = PageRequest.of(0, ACTIVATE_COUNT_PER_SEC)
+		val waitingQueues = queueRepository.findAllOrderByCreatedAt(QueueActiveStatus.WAITING, pageable)
+
+		waitingQueues.forEach() { it.activate(clockHolder.getCurrentTime()) }
+		queueRepository.saveAll(waitingQueues)
 	}
 }

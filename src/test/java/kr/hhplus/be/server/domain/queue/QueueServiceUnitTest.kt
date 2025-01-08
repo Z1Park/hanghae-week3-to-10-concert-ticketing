@@ -40,7 +40,7 @@ class QueueServiceUnitTest {
 	fun `가장 최근 활성화된 토큰 조회 시, 활성화된 토큰이 없으면 null을 반환한다`() {
 		// given
 		val pageable = PageRequest.of(0, 1)
-		`when`(queueRepository.findAllFromLastActivatedQueue(pageable))
+		`when`(queueRepository.findAllOrderByCreatedAtDesc(QueueActiveStatus.ACTIVATED, pageable))
 			.then { emptyList<Queue>() }
 
 		// when
@@ -65,7 +65,7 @@ class QueueServiceUnitTest {
 			.set(field(Queue::createdAt), testTime.minusNanos(1))
 			.create()
 
-		`when`(queueRepository.findAllFromLastActivatedQueue(pageable))
+		`when`(queueRepository.findAllOrderByCreatedAtDesc(QueueActiveStatus.ACTIVATED, pageable))
 			.then { listOf(queue1, queue2, queue3) }
 
 		// when
@@ -113,5 +113,32 @@ class QueueServiceUnitTest {
 		//then
 		assertThat(actual.myWaitingOrder).isEqualTo(0)
 		assertThat(actual.expectedWaitingSeconds).isEqualTo(0)
+	}
+
+	@Test
+	fun `대기열 토큰 활성화 요청 시, 대기 중인 토큰 중 가장 오래 기다린 일부 토큰을 조회 후 활성 상태로 바꾼다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 8, 13, 22, 42)
+		val allQueues = mutableListOf<Queue>()
+		for (i in 1L..80L) {
+			val queue = Instancio.of(Queue::class.java)
+				.set(field(Queue::activateStatus), QueueActiveStatus.WAITING)
+				.set(field(Queue::createdAt), testTime.plusNanos(i * 1000))
+				.create()
+			allQueues.add(queue)
+		}
+		val pageable = PageRequest.of(0, 80)
+
+		`when`(queueRepository.findAllOrderByCreatedAtDesc(QueueActiveStatus.WAITING, pageable))
+			.then { allQueues }
+
+		// when
+		val updateTime = testTime.plusMinutes(1)
+		sut.activateTokens() { updateTime }
+
+		//then
+		assertThat(allQueues)
+			.allMatch { it.expiredAt == updateTime.plusMinutes(10) }
+			.allMatch { it.activateStatus == QueueActiveStatus.ACTIVATED }
 	}
 }

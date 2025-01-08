@@ -30,4 +30,8 @@ class QueueFacadeService(
 
 		return generatedUuid
 	}
+
+	fun activateTokens() {
+		queueService.activateTokens(clockHolder)
+	}
 }

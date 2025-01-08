@@ -50,4 +50,13 @@ class QueueController(
 		val waitingInfo = queueFacadeService.getWaitingInfo(queue)
 		return WaitingInformationResponse.from(waitingInfo)
 	}
+
+	@Operation(
+		summary = "대기열 토큰 상태 변경 스케줄러 API",
+		description = "배치 혹은 스케줄러에 의해 호출되어, 대기열 토큰 중 일부를 활성 상태로 변경"
+	)
+	@PostMapping("/activate")
+	fun activateToken() {
+		queueFacadeService.activateTokens()
+	}
 }

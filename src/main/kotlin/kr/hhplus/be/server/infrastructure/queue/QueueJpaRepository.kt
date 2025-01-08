@@ -9,5 +9,7 @@ interface QueueJpaRepository : JpaRepository<Queue, Long> {
 
 	fun findByTokenUUID(tokenUUID: String): Queue?
 
+	fun findAllByActivateStatusOrderByCreatedAt(activateStatus: QueueActiveStatus, pageable: Pageable): List<Queue>
+
 	fun findAllByActivateStatusOrderByCreatedAtDesc(activateStatus: QueueActiveStatus, pageable: Pageable): List<Queue>
 }

@@ -15,9 +15,17 @@ class QueueRepositoryImpl(
 		return queueJpaRepository.findByTokenUUID(tokenUUID)
 	}
 
-	override fun findAllFromLastActivatedQueue(pageable: Pageable): List<Queue> {
-		return queueJpaRepository.findAllByActivateStatusOrderByCreatedAtDesc(QueueActiveStatus.ACTIVATED, pageable)
+	override fun findAllOrderByCreatedAt(activateStatus: QueueActiveStatus, pageable: Pageable): List<Queue> {
+		return queueJpaRepository.findAllByActivateStatusOrderByCreatedAt(activateStatus, pageable)
+	}
+
+	override fun findAllOrderByCreatedAtDesc(activateStatus: QueueActiveStatus, pageable: Pageable): List<Queue> {
+		return queueJpaRepository.findAllByActivateStatusOrderByCreatedAtDesc(activateStatus, pageable)
 	}
 
 	override fun save(queue: Queue): Queue = queueJpaRepository.save(queue)
+
+	override fun saveAll(queues: List<Queue>) {
+		queueJpaRepository.saveAll(queues)
+	}
 }

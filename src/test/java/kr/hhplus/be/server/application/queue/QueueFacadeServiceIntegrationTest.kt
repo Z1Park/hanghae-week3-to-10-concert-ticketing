@@ -30,12 +30,12 @@ class QueueFacadeServiceIntegrationTest(
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 8, 10, 49, 56)
 		for (i in 1L..10L) {
-			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, testTime.plusNanos(i * 1000))
+			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED)
 			queueJpaRepository.save(activatedQueue)
 		}
 
 		for (i in 11L..90L) {
-			val waitingQueue = Queue("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING, testTime.plusNanos(i * 1000))
+			val waitingQueue = Queue("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
 			queueJpaRepository.save(waitingQueue)
 		}
 
@@ -62,5 +62,34 @@ class QueueFacadeServiceIntegrationTest(
 		//then
 		assertThat(actual.userUUID).isEqualTo("myUserUUID")
 		assertThat(actual.tokenUUID).isEqualTo(set)
+	}
+
+	@Test
+	fun `토큰 진입 요청 시, 100명이 대기하고 있다면 그 중 가장 오래 기다린 80명의 토큰이 활성 상태로 변경된다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 8, 10, 49, 56)
+		for (i in 1L..10L) {
+			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, testTime.plusNanos(i * 1000))
+			queueJpaRepository.save(activatedQueue)
+		}
+
+		for (i in 11L..100L) {
+			val waitingQueue = Queue("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
+			queueJpaRepository.save(waitingQueue)
+		}
+
+		// when
+		sut.activateTokens()
+
+		//then
+		val allQueues = queueJpaRepository.findAll()
+		val activatedQueues = allQueues.filter { it.isActivated() }
+		val minWaitingTokenTime = allQueues.filter { it.activateStatus == QueueActiveStatus.WAITING }.minOfOrNull { it.createdAt }!!
+		val waitingCount = allQueues.count { it.activateStatus == QueueActiveStatus.WAITING }
+
+		assertThat(activatedQueues).hasSize(90)
+			.allMatch { it.expiredAt != null }
+			.allMatch { it.createdAt.isBefore(minWaitingTokenTime) }
+		assertThat(waitingCount).isEqualTo(10)
 	}
 }
