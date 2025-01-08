@@ -19,15 +19,13 @@ class Queue(
 	@Column(name = "activate_status", nullable = false)
 	var activateStatus: QueueActiveStatus,
 
-	@Column(name = "expired_at", nullable = false)
-	var expiredAt: LocalDateTime
+	@Column(name = "expired_at")
+	var expiredAt: LocalDateTime? = null
 ) : BaseEntity() {
 
 	companion object {
-		fun createNewToken(userUUID: String, tokenUUID: String, clockHolder: ClockHolder): Queue {
-			val expiredAt = clockHolder.getCurrentTime().plusMinutes(30)
-
-			return Queue(userUUID, tokenUUID, QueueActiveStatus.WAITING, expiredAt)
+		fun createNewToken(userUUID: String, tokenUUID: String): Queue {
+			return Queue(userUUID, tokenUUID, WAITING)
 		}
 	}
 

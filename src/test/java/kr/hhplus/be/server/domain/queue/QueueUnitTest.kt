@@ -23,7 +23,6 @@ class QueueUnitTest {
 
 		//then
 		assertThat(actual.userUUID).isEqualTo("myUserUUID")
-		assertThat(actual.expiredAt).isEqualTo(LocalDateTime.of(2025, 1, 7, 11, 26))
 		assertThat(actual.tokenUUID).isEqualTo("newTokenUUID")
 	}
 

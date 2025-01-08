@@ -31,8 +31,8 @@ class QueueService(
 		return QueueWaitingInfo(waitingOrder, expectedWaitingSeconds)
 	}
 
-	fun createNewQueueToken(userUUID: String, tokenUUID: String, clockHolder: ClockHolder): Queue {
-		val queue = Queue.createNewToken(userUUID, tokenUUID, clockHolder)
+	fun createNewQueueToken(userUUID: String, tokenUUID: String): Queue {
+		val queue = Queue.createNewToken(userUUID, tokenUUID)
 		return queueRepository.save(queue)
 	}
 }

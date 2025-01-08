@@ -26,7 +26,7 @@ class QueueFacadeService(
 
 		val generatedUuid = uuidGenerator.generateUuid()
 
-		queueService.createNewQueueToken(userUUID, generatedUuid, clockHolder)
+		queueService.createNewQueueToken(userUUID, generatedUuid)
 
 		return generatedUuid
 	}
