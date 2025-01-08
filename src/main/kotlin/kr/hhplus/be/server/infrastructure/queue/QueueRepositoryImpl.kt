@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.queue.QueueActiveStatus
 import kr.hhplus.be.server.domain.queue.QueueRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 class QueueRepositoryImpl(
@@ -13,6 +14,14 @@ class QueueRepositoryImpl(
 
 	override fun findByUUID(tokenUUID: String): Queue? {
 		return queueJpaRepository.findByTokenUUID(tokenUUID)
+	}
+
+	override fun findAllByActivateStatusAndExpiredAtBefore(activateStatus: QueueActiveStatus, expiredAt: LocalDateTime): List<Queue> {
+		return queueJpaRepository.findAllByActivateStatusAndExpiredAtBefore(activateStatus, expiredAt)
+	}
+
+	override fun countByActivateStatusAndExpiredAtAfter(activateStatus: QueueActiveStatus, expiredAt: LocalDateTime): Int {
+		return queueJpaRepository.countAllByActivateStatusAndExpiredAtAfter(activateStatus, expiredAt)
 	}
 
 	override fun findAllOrderByCreatedAt(activateStatus: QueueActiveStatus, pageable: Pageable): List<Queue> {

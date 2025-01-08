@@ -20,15 +20,15 @@ class QueueFacadeService(
 	}
 
 	fun issueQueueToken(userUUID: String, uuidGenerator: UuidGenerator): String {
-
 		val generatedUuid = uuidGenerator.generateUuid()
 
-		queueService.createNewQueueToken(userUUID, generatedUuid)
-
-		return generatedUuid
+		val createdQueue = queueService.createNewToken(userUUID, generatedUuid)
+		return createdQueue.tokenUUID
 	}
 
-	fun activateTokens() {
+	fun refreshTokens() {
+		queueService.expireTokens(clockHolder)
+
 		queueService.activateTokens(clockHolder)
 	}
 }

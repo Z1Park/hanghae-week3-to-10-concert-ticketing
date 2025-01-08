@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.queue
 
+import io.mockk.every
+import io.mockk.mockkObject
 import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageRequest
@@ -133,5 +136,84 @@ class QueueServiceUnitTest {
 		//then
 		assertThat(actual.myWaitingOrder).isEqualTo(0)
 		assertThat(actual.expectedWaitingSeconds).isEqualTo(0)
+	}
+
+	@Test
+	fun `토큰 저장 시, 전달받은 토큰을 저장하는 메서드를 호출한다`() {
+		// given
+		val userUUID = "myUserUUID"
+		val tokenUUID = "myTokenUUID"
+		val queue = Instancio.of(Queue::class.java)
+			.set(field(Queue::userUUID), userUUID)
+			.set(field(Queue::tokenUUID), tokenUUID)
+			.create()
+
+		mockkObject(Queue.Companion)
+		every { Queue.createNewToken(userUUID, tokenUUID) } returns queue
+
+		// when
+		sut.createNewToken(userUUID, tokenUUID)
+
+		//then
+		verify(queueRepository).save(queue)
+	}
+
+	@Test
+	fun `토큰 만료 요청 시, 활성화된 토큰을 조회 후 만료 시키고 저장한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 8, 11, 33, 45)
+
+		val token1 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val token2 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val token3 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val tokens = listOf(token1, token2, token3)
+
+		`when`(queueRepository.findAllByActivateStatusAndExpiredAtBefore(QueueActiveStatus.ACTIVATED, testTime))
+			.then { tokens }
+
+		// when
+		sut.expireTokens() { testTime }
+
+		//then
+		assertThat(tokens).allMatch { it.activateStatus == QueueActiveStatus.DEACTIVATED }
+
+		verify(queueRepository).findAllByActivateStatusAndExpiredAtBefore(QueueActiveStatus.ACTIVATED, testTime)
+		verify(queueRepository).saveAll(tokens)
+	}
+
+	@Test
+	fun `토큰 활성화 요청 시, 활성화 토큰의 수를 조회 후 빈자리만큼 대기 중인 토큰을 활성화시킨다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 8, 11, 33, 45)
+
+		`when`(queueRepository.countByActivateStatusAndExpiredAtAfter(QueueActiveStatus.ACTIVATED, testTime))
+			.then { 77 }
+
+		val pageable = PageRequest.of(0, 3)
+		val token1 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val token2 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val token3 = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val tokens = listOf(token1, token2, token3)
+		`when`(queueRepository.findAllOrderByCreatedAt(QueueActiveStatus.WAITING, pageable))
+			.then { tokens }
+
+		// when
+		sut.activateTokens() { testTime }
+
+		//then
+		assertThat(tokens).hasSize(3)
+			.allMatch { it.activateStatus == QueueActiveStatus.ACTIVATED }
 	}
 }

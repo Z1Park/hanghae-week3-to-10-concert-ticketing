@@ -2,8 +2,7 @@ package kr.hhplus.be.server.domain.queue
 
 import jakarta.persistence.*
 import kr.hhplus.be.server.domain.BaseEntity
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus.ACTIVATED
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus.WAITING
+import kr.hhplus.be.server.domain.queue.QueueActiveStatus.*
 import java.time.LocalDateTime
 import kotlin.math.max
 
@@ -37,7 +36,13 @@ class Queue(
 	fun activate(activateTime: LocalDateTime) {
 		if (activateStatus == WAITING) {
 			activateStatus = ACTIVATED
-			expiredAt = activateTime.plusMinutes(10)
+			expiredAt = activateTime.plusMinutes(20)
+		}
+	}
+
+	fun deactivate() {
+		if (activateStatus == ACTIVATED) {
+			activateStatus = DEACTIVATED
 		}
 	}
 

@@ -12,20 +12,6 @@ import java.time.LocalDateTime
 class QueueUnitTest {
 
 	@Test
-	fun `대기열 토큰 생성 시, userUUID와 새로운 tokenUUID를 가진 Queue 객체를 반환한다`() {
-		// given
-		val userUUID = "myUserUUID"
-		val tokenUUID = "newTokenUUID"
-
-		// when
-		val actual = Queue.createNewToken(userUUID, tokenUUID)
-
-		//then
-		assertThat(actual.userUUID).isEqualTo("myUserUUID")
-		assertThat(actual.tokenUUID).isEqualTo("newTokenUUID")
-	}
-
-	@Test
 	fun `대기번호 계산 시, 최근 활성 토큰이 null이라면 id만큼 대기번호를 반환한다`() {
 		// given
 		val queue = Instancio.of(Queue::class.java)
@@ -69,7 +55,7 @@ class QueueUnitTest {
 
 		//then
 		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.ACTIVATED)
-		assertThat(queue.expiredAt).isEqualTo(testTime.plusMinutes(10))
+		assertThat(queue.expiredAt).isEqualTo(testTime.plusMinutes(20))
 	}
 
 	@Test
@@ -87,5 +73,33 @@ class QueueUnitTest {
 		//then
 		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)
 		assertThat(queue.expiredAt).isNull()
+	}
+
+	@Test
+	fun `토큰 만료 요청 시, 활성화된 토큰을 만료시킨다`() {
+		// given
+		val queue = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+
+		// when
+		queue.deactivate()
+
+		//then
+		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)
+	}
+
+	@Test
+	fun `토큰 비활성화 요청 시, 대기 상태 토큰은 만료되지 않는다`() {
+		// given
+		val queue = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.WAITING)
+			.create()
+
+		// when
+		queue.deactivate()
+
+		//then
+		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.WAITING)
 	}
 }

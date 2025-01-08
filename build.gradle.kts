@@ -62,6 +62,7 @@ dependencies {
 	testImplementation("org.testcontainers:mysql")
 	testImplementation("org.instancio:instancio-junit:5.2.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("io.mockk:mockk:1.13.8")
 }
 
 tasks.withType<Test> {
