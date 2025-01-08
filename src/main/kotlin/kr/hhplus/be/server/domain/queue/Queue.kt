@@ -1,14 +1,13 @@
 package kr.hhplus.be.server.domain.queue
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
+import jakarta.persistence.*
 import kr.hhplus.be.server.common.ClockHolder
 import kr.hhplus.be.server.domain.BaseEntity
 import java.time.LocalDateTime
+import kotlin.math.max
 
 @Entity
+@Table(name = "queue")
 class Queue(
 	@Column(name = "user_uuid", nullable = false)
 	var userUUID: String,
@@ -30,6 +29,15 @@ class Queue(
 
 			return Queue(userUUID, tokenUUID, QueueActiveStatus.WAITING, expiredAt)
 		}
+	}
+
+	fun isActivated(): Boolean {
+		return activateStatus == QueueActiveStatus.ACTIVATED
+	}
+
+	fun calculateWaitingOrder(lastActivatedQueue: Queue?): Long {
+		val waitingOrder = this.id - (lastActivatedQueue?.id ?: 0) - 1
+		return max(waitingOrder, 0L)
 	}
 }
 

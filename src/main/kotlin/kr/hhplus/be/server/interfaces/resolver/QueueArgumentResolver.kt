@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.interfaces.resolver
 
-import kr.hhplus.be.server.domain.user.User
-import kr.hhplus.be.server.domain.user.UserService
+import kr.hhplus.be.server.domain.queue.Queue
+import kr.hhplus.be.server.domain.queue.QueueService
 import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
-import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
+import kr.hhplus.be.server.interfaces.exception.ForbiddenException
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
@@ -12,17 +12,17 @@ import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
-private const val USER_TOKEN_COOKIE_NAME = "user-access-token"
+private const val QUEUE_TOKEN_COOKIE_NAME = "queue-access-token"
 
 @Component
-class UserArgumentResolver(
-	private val userService: UserService,
+class QueueArgumentResolver(
+	private val queueService: QueueService,
 	private val tokenExtractor: TokenExtractor
 ) : HandlerMethodArgumentResolver {
 	private val log = LoggerFactory.getLogger(this.javaClass)!!
 
 	override fun supportsParameter(parameter: MethodParameter): Boolean =
-		parameter.hasMethodAnnotation(UserToken::class.java) && parameter.parameterType == User::class.java
+		parameter.hasMethodAnnotation(QueueToken::class.java) && parameter.parameterType == Queue::class.java
 
 	override fun resolveArgument(
 		parameter: MethodParameter,
@@ -30,14 +30,17 @@ class UserArgumentResolver(
 		webRequest: NativeWebRequest,
 		binderFactory: WebDataBinderFactory?
 	): Any? {
-		val userToken = tokenExtractor.extractTokenFromCookie(webRequest, USER_TOKEN_COOKIE_NAME)
-			?: throw UnauthorizedException()
+		val queueToken = tokenExtractor.extractTokenFromCookie(webRequest, QUEUE_TOKEN_COOKIE_NAME)
+			?: throw ForbiddenException()
 
 		try {
-			return userService.getByUuid(userToken)
+			val queue = queueService.getByUuid(queueToken)
+			require(queue.isActivated()) { throw ForbiddenException() }
+
+			return queue.tokenUUID
 		} catch (e: EntityNotFoundException) {
 			log.error(e.message)
-			throw UnauthorizedException()
+			throw ForbiddenException()
 		}
 	}
 }
