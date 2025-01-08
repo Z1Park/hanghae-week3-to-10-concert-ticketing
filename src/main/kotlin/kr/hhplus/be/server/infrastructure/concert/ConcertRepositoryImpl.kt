@@ -13,4 +13,7 @@ class ConcertRepositoryImpl(
 
 	override fun findAllConcert(finished: Boolean): List<Concert> =
 		concertJpaRepository.findAllByFinished(finished)
+
+	override fun findConcertWithSchedule(concertId: Long): Concert? =
+		concertJpaRepository.findByIdWithSchedule(concertId)
 }

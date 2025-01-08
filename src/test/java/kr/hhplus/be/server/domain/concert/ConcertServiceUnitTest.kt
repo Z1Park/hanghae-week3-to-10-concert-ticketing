@@ -1,7 +1,9 @@
 package kr.hhplus.be.server.domain.concert
 
 import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,9 +25,9 @@ class ConcertServiceUnitTest {
 	@Test
 	fun `콘서트 정보 조회 시, 현재 진행 중인 콘서트 정보를 조회하고 그 결과를 반환한다`() {
 		// given
-		val concert1 = createConcert(1L, "콘서트1", "가수1", false)
-		val concert2 = createConcert(2L, "콘서트2", "그룹1", false)
-		val concert3 = createConcert(3L, "콘서트3", "가수2", false)
+		val concert1 = createConcert(1L, "콘서트1", "가수1")
+		val concert2 = createConcert(2L, "콘서트2", "그룹1")
+		val concert3 = createConcert(3L, "콘서트3", "가수2")
 		val concerts = listOf(concert1, concert2, concert3)
 
 		`when`(concertRepository.findAllConcert(false)).then { concerts }
@@ -42,11 +44,58 @@ class ConcertServiceUnitTest {
 			.anyMatch { it.concertId == 3L && it.title == "콘서트3" && it.provider == "가수2" }
 	}
 
-	private fun createConcert(id: Long, title: String, provider: String, finished: Boolean): Concert =
+	@Test
+	fun `콘서트 일정 조회 시, 콘서트 id에 해당하는 콘서트 일정을 조회하고 그 결과를 반환한다`() {
+		// given
+		val concertId = 13L
+
+		val schedule1 = createSchedule(1L, concertId)
+		val schedule2 = createSchedule(2L, concertId)
+		val schedule3 = createSchedule(3L, concertId)
+		val schedules = listOf(schedule1, schedule2, schedule3)
+		val concert = createConcert(concertId, "콘서트1", "가수1", schedules)
+
+		`when`(concertRepository.findConcertWithSchedule(concertId))
+			.then { concert }
+
+		// when
+		val actual = sut.getConcertSchedule(concertId)
+
+		//then
+		verify(concertRepository).findConcertWithSchedule(13L)
+
+		assertThat(actual).hasSize(3)
+			.allMatch { it.concertId == 13L }
+			.anyMatch { it.concertScheduleId == 1L }
+			.anyMatch { it.concertScheduleId == 2L }
+			.anyMatch { it.concertScheduleId == 3L }
+	}
+
+	@Test
+	fun `콘서트 일정 조회 시, 없는 콘서트 id로 조회하면 EntityNotFoundException이 발생한다`() {
+		// given
+		val concertId = 201L
+		`when`(concertRepository.findConcertWithSchedule(concertId))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.getConcertSchedule(concertId) }
+			.isInstanceOf(EntityNotFoundException::class.java)
+			.hasMessage("Concert 엔티티를 찾을 수 없습니다. Id=201")
+	}
+
+	private fun createConcert(id: Long, title: String, provider: String, schedules: List<ConcertSchedule> = listOf()): Concert =
 		Instancio.of(Concert::class.java)
 			.set(field(Concert::id), id)
 			.set(field(Concert::title), title)
 			.set(field(Concert::provider), provider)
-			.set(field(Concert::finished), finished)
+			.set(field(Concert::finished), false)
+			.set(field(Concert::concertSchedules), schedules)
+			.create()
+
+	private fun createSchedule(id: Long, concertId: Long): ConcertSchedule =
+		Instancio.of(ConcertSchedule::class.java)
+			.set(field(ConcertSchedule::id), id)
+			.set(field(ConcertSchedule::concertId), concertId)
 			.create()
 }

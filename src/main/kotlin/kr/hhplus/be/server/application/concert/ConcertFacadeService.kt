@@ -9,7 +9,9 @@ class ConcertFacadeService(
 	private val concertService: ConcertService
 ) {
 
-	fun getConcertInformation(): List<ConcertInfo.Concert> {
-		return concertService.getConcertInformation()
-	}
+	fun getConcertInformation(): List<ConcertInfo.Concert> =
+		concertService.getConcertInformation()
+
+	fun getConcertScheduleInformation(concertId: Long): List<ConcertInfo.Schedule> =
+		concertService.getConcertSchedule(concertId)
 }

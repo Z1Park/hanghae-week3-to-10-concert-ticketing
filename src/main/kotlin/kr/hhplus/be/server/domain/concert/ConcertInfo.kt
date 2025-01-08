@@ -16,13 +16,17 @@ class ConcertInfo {
 	}
 
 	data class Schedule(
+		val concertId: Long,
 		val concertScheduleId: Long,
-		val concertPlace: String,
-		val concertLocation: String,
 		val totalSeat: Int,
 		val startAt: LocalDateTime,
 		val endAt: LocalDateTime
-	)
+	) {
+		companion object {
+			fun from(schedule: ConcertSchedule) =
+				Schedule(schedule.concertId, schedule.id, schedule.totalSeat, schedule.startAt, schedule.endAt)
+		}
+	}
 
 	data class Seat(
 		val seatId: Long,
