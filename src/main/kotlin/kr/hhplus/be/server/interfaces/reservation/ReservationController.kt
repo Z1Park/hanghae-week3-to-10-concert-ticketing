@@ -7,7 +7,7 @@ import kr.hhplus.be.server.interfaces.exception.ForbiddenException
 import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import org.apache.coyote.BadRequestException
 import org.springframework.web.bind.annotation.*
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 
 @Tag(name = "예약")
 @RestController
@@ -29,6 +29,6 @@ class ReservationController {
 		require(!concertAccessToken.isNullOrBlank()) { throw ForbiddenException() }
 		require(reserveConcertRequest.concertId != -1L) { throw ConflictException() }
 
-		return ReserveConcertResponse(438L, ZonedDateTime.now().plusDays(3))
+		return ReserveConcertResponse(438L, LocalDateTime.now().plusDays(3))
 	}
 }

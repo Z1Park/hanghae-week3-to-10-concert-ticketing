@@ -25,9 +25,12 @@ class QueueService(
 	}
 
 	fun calculateWaitingInfo(queue: Queue, lastActivatedQueue: Queue?): QueueWaitingInfo {
+		if (queue.isActivated()) {
+			return QueueWaitingInfo(0, 0);
+		}
+		
 		val waitingOrder = queue.calculateWaitingOrder(lastActivatedQueue)
 		val expectedWaitingSeconds = ceil(waitingOrder.toDouble() / ACTIVATE_COUNT_PER_SEC).toInt()
-
 		return QueueWaitingInfo(waitingOrder, expectedWaitingSeconds)
 	}
 

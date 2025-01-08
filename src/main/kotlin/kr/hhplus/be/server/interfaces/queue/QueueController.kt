@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.queue.QueueFacadeService
 import kr.hhplus.be.server.common.UuidV4Generator
-import kr.hhplus.be.server.domain.queue.Queue
-import kr.hhplus.be.server.domain.user.User
 import kr.hhplus.be.server.interfaces.resolver.QueueToken
 import kr.hhplus.be.server.interfaces.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
@@ -30,8 +28,8 @@ class QueueController(
 		description = "대기열 토큰을 발급하고 대기열에 유저를 등록",
 	)
 	@PostMapping("")
-	fun issueQueueToken(@UserToken tokenUser: User): ResponseEntity<Unit> {
-		val issuedQueueToken = queueFacadeService.issueQueueToken(tokenUser.userUUID, uuidGenerator)
+	fun issueQueueToken(@UserToken userToken: String): ResponseEntity<Unit> {
+		val issuedQueueToken = queueFacadeService.issueQueueToken(userToken, uuidGenerator)
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
@@ -46,8 +44,11 @@ class QueueController(
 		description = "대기열 토큰을 기반으로 대기 순서 및 예상시간 반환",
 	)
 	@GetMapping("")
-	fun getWaitingInformation(@UserToken user: User, @QueueToken queue: Queue): WaitingInformationResponse {
-		val waitingInfo = queueFacadeService.getWaitingInfo(queue)
+	fun getWaitingInformation(
+		@UserToken userToken: String,
+		@QueueToken queueToken: String
+	): WaitingInformationResponse {
+		val waitingInfo = queueFacadeService.getWaitingInfo(queueToken)
 		return WaitingInformationResponse.from(waitingInfo)
 	}
 

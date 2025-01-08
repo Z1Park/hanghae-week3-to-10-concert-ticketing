@@ -43,7 +43,7 @@ class QueueFacadeServiceIntegrationTest(
 		queueJpaRepository.save(queue)
 
 		// when
-		val actual = sut.getWaitingInfo(queue)
+		val actual = sut.getWaitingInfo("myTokenUUID")
 
 		//then
 		assertThat(actual.myWaitingOrder).isEqualTo(80)

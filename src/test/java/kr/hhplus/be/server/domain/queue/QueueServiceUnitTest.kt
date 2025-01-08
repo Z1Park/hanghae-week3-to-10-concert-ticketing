@@ -96,14 +96,14 @@ class QueueServiceUnitTest {
 	}
 
 	@Test
-	fun `대기번호 조회 시, 이미 활성화된 상태라면 0의 대기번호와 0의 예상 대기시간을 반환한다`() {
+	fun `대기번호 조회 시, 최근 활성 토큰의 id가 현재 id보다 더 크다면 0의 대기번호와 0의 예상 대기시간을 반환한다`() {
 		// given
 		val myQueue = Instancio.of(Queue::class.java)
 			.set(field(Queue::id), 2482L)
 			.set(field(Queue::activateStatus), QueueActiveStatus.WAITING)
 			.create()
 		val lastActivatedQueue = Instancio.of(Queue::class.java)
-			.set(field(Queue::id), 3845L)
+			.set(field(Queue::id), 2483L)
 			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
 			.create()
 
@@ -116,29 +116,22 @@ class QueueServiceUnitTest {
 	}
 
 	@Test
-	fun `대기열 토큰 활성화 요청 시, 대기 중인 토큰 중 가장 오래 기다린 일부 토큰을 조회 후 활성 상태로 바꾼다`() {
+	fun `대기번호 조회 시, 이미 활성화된 상태라면 0의 대기번호와 0의 예상 대기시간을 반환한다`() {
 		// given
-		val testTime = LocalDateTime.of(2025, 1, 8, 13, 22, 42)
-		val allQueues = mutableListOf<Queue>()
-		for (i in 1L..80L) {
-			val queue = Instancio.of(Queue::class.java)
-				.set(field(Queue::activateStatus), QueueActiveStatus.WAITING)
-				.set(field(Queue::createdAt), testTime.plusNanos(i * 1000))
-				.create()
-			allQueues.add(queue)
-		}
-		val pageable = PageRequest.of(0, 80)
-
-		`when`(queueRepository.findAllOrderByCreatedAtDesc(QueueActiveStatus.WAITING, pageable))
-			.then { allQueues }
+		val myQueue = Instancio.of(Queue::class.java)
+			.set(field(Queue::id), 2482L)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+		val lastActivatedQueue = Instancio.of(Queue::class.java)
+			.set(field(Queue::id), 1L)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
 
 		// when
-		val updateTime = testTime.plusMinutes(1)
-		sut.activateTokens() { updateTime }
+		val actual = sut.calculateWaitingInfo(myQueue, lastActivatedQueue)
 
 		//then
-		assertThat(allQueues)
-			.allMatch { it.expiredAt == updateTime.plusMinutes(10) }
-			.allMatch { it.activateStatus == QueueActiveStatus.ACTIVATED }
+		assertThat(actual.myWaitingOrder).isEqualTo(0)
+		assertThat(actual.expectedWaitingSeconds).isEqualTo(0)
 	}
 }

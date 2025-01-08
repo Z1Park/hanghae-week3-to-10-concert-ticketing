@@ -34,7 +34,7 @@ class UserArgumentResolver(
 			?: throw UnauthorizedException()
 
 		try {
-			return userService.getByUuid(userToken)
+			return userService.getByUuid(userToken).userUUID
 		} catch (e: EntityNotFoundException) {
 			log.error(e.message)
 			throw UnauthorizedException()

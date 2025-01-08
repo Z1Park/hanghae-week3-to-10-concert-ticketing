@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.queue
 
 import kr.hhplus.be.server.common.ClockHolder
 import kr.hhplus.be.server.common.UuidGenerator
-import kr.hhplus.be.server.domain.queue.Queue
 import kr.hhplus.be.server.domain.queue.QueueService
 import kr.hhplus.be.server.domain.queue.QueueWaitingInfo
 import org.springframework.stereotype.Service
@@ -13,12 +12,10 @@ class QueueFacadeService(
 	private val clockHolder: ClockHolder
 ) {
 
-	fun getWaitingInfo(queue: Queue): QueueWaitingInfo {
-		if (queue.isActivated()) {
-			return QueueWaitingInfo(0, 0);
-		}
-
+	fun getWaitingInfo(tokenUUID: String): QueueWaitingInfo {
+		val queue = queueService.getByUuid(tokenUUID)
 		val lastActivatedQueue = queueService.findLastActivatedQueue()
+
 		return queueService.calculateWaitingInfo(queue, lastActivatedQueue)
 	}
 
