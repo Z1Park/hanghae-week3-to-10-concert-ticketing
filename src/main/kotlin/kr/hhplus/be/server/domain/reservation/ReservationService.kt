@@ -3,12 +3,23 @@ package kr.hhplus.be.server.domain.reservation
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.ClockHolder
 import kr.hhplus.be.server.domain.exception.AlreadyReservedException
+import kr.hhplus.be.server.domain.exception.ReservationExpiredException
+import org.apache.coyote.BadRequestException
 import org.springframework.stereotype.Service
 
 @Service
 class ReservationService(
 	private val reservationRepository: ReservationRepository
 ) {
+
+	fun getReservationForPay(userId: Long, reservationId: Long, clockHolder: ClockHolder): Reservation {
+		val reservation = reservationRepository.findByUserIdAndReservationId(userId, reservationId)
+			?: throw BadRequestException()
+
+		require(!reservation.isExpired(clockHolder.getCurrentTime())) { throw ReservationExpiredException() }
+
+		return reservation
+	}
 
 	@Transactional
 	fun reserve(request: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {

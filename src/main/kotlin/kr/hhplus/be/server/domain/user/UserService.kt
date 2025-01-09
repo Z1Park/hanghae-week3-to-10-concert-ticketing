@@ -9,25 +9,35 @@ class UserService(
 	private val userRepository: UserRepository
 ) {
 
-	fun getById(userId: Long): User = userRepository.findById(userId)
-		?: throw EntityNotFoundException.fromId("User", userId)
-
 	fun getByUuid(uuid: String): User = userRepository.findByUuid(uuid)
 		?: throw EntityNotFoundException.fromParam("User", "uuid", uuid)
 
-	fun getByUuidForUpdate(uuid: String): User = userRepository.findByUuidForUpdate(uuid)
-		?: throw EntityNotFoundException.fromParam("User", "uuid", uuid)
-
 	@Transactional
-	fun updateUserUuid(user: User, uuid: String) {
+	fun saveUserUUID(userId: Long, uuid: String): User {
+		val user = userRepository.findById(userId)
+			?: throw EntityNotFoundException.fromId("User", userId)
+
 		user.updateUserUUID(uuid)
-		userRepository.save(user)
+		return userRepository.save(user)
 	}
 
 	@Transactional
-	fun charge(user: User, chargeAmount: Int) {
+	fun charge(userUUID: String, chargeAmount: Int): User {
+		val user = userRepository.findByUuidForUpdate(userUUID)
+			?: throw EntityNotFoundException.fromParam("User", "uuid", userUUID)
+
 		val chargePointHistory = user.charge(chargeAmount)
 		userRepository.save(chargePointHistory)
-		userRepository.save(user)
+		return userRepository.save(user)
+	}
+
+	@Transactional
+	fun use(userUUID: String, useAmount: Int): User {
+		val user = userRepository.findByUuidForUpdate(userUUID)
+			?: throw EntityNotFoundException.fromParam("User", "uuid", userUUID)
+
+		val usePointHistory = user.use(useAmount)
+		userRepository.save(usePointHistory)
+		return userRepository.save(user)
 	}
 }

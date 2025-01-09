@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.user
 
-import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.UuidGenerator
 import kr.hhplus.be.server.domain.user.UserService
 import org.springframework.stereotype.Service
@@ -11,12 +10,10 @@ class UserFacadeService(
 ) {
 
 	fun issueUserToken(userId: Long, uuidGenerator: UuidGenerator): String {
-		val user = userService.getById(userId)
-
 		val generatedUuid = uuidGenerator.generateUuid()
-		userService.updateUserUuid(user, generatedUuid)
+		val user = userService.saveUserUUID(userId, generatedUuid)
 
-		return generatedUuid
+		return user.userUUID
 	}
 
 	fun getUserBalance(userUUID: String): Int {
@@ -25,11 +22,8 @@ class UserFacadeService(
 		return user.balance
 	}
 
-	@Transactional
 	fun charge(userUUID: String, chargeAmount: Int): Int {
-		val user = userService.getByUuidForUpdate(userUUID)
-
-		userService.charge(user, chargeAmount)
+		val user = userService.charge(userUUID, chargeAmount)
 		return user.balance
 	}
 }

@@ -23,6 +23,26 @@ class ReservationServiceIntegrationTest(
 	}
 
 	@Test
+	fun `결제를 위해 예약 조회 요청 시, userId와 reservationId에 맞는 예약을 조회해서 반환한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 10, 12, 30, 55)
+		val userId = 1L
+		val reservation = Reservation(testTime.plusMinutes(5), 1000, userId, 2L, 3L, 4L)
+		reservationJpaRepository.save(reservation)
+
+		// when
+		val actual = sut.getReservationForPay(userId, reservation.id) { testTime }
+
+		//then
+		assertThat(actual.expiredAt).isEqualTo(testTime.plusMinutes(5))
+		assertThat(actual.price).isEqualTo(1000)
+		assertThat(actual.userId).isEqualTo(1L)
+		assertThat(actual.concertId).isEqualTo(2L)
+		assertThat(actual.concertScheduleId).isEqualTo(3L)
+		assertThat(actual.concertSeatId).isEqualTo(4L)
+	}
+
+	@Test
 	fun `예약 요청 시, 예약이 없다면 새로운 Reservation을 생성하고 저장한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 19, 43, 31)

@@ -37,4 +37,14 @@ class User(
 		pointHistories.add(pointHistory)
 		return pointHistory
 	}
+
+	fun use(amount: Int): PointHistory {
+		require(balance >= amount) { throw BadRequestException() }
+
+		balance -= amount
+
+		val pointHistory = PointHistory.use(id, amount)
+		pointHistories.add(pointHistory)
+		return pointHistory
+	}
 }

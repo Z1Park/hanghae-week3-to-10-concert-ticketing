@@ -9,6 +9,9 @@ class ReservationRepositoryImpl(
 	private val reservationJpaRepository: ReservationJpaRepository
 ) : ReservationRepository {
 
+	override fun findByUserIdAndReservationId(userId: Long, reservationId: Long): Reservation? =
+		reservationJpaRepository.findByIdAndAndUserId(reservationId, userId)
+
 	override fun findByScheduleAndSeatForUpdate(concertScheduleId: Long, concertSeatId: Long): Reservation? =
 		reservationJpaRepository.findForUpdateByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)
 

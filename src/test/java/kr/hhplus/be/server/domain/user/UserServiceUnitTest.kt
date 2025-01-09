@@ -25,38 +25,6 @@ class UserServiceUnitTest {
 	private lateinit var userRepository: UserRepository
 
 	@Test
-	fun `id를 통해 유저 조회 시, userRepository의 getById 메서드를 호출한다`() {
-		// given
-		val userId = 1L
-		val user = Instancio.of(User::class.java)
-			.set(field(User::id), userId)
-			.set(field(User::username), "김항해")
-			.create()
-
-		`when`(userRepository.findById(userId)).then { user }
-
-		// when
-		val actual = sut.getById(userId)
-
-		//then
-		verify(userRepository).findById(userId)
-
-		assertThat(actual.id).isEqualTo(1L)
-		assertThat(actual.username).isEqualTo("김항해")
-	}
-
-	@Test
-	fun `유저 조회 시, 없는 유저를 조회하면 EntityNotFoundException이 발생한다`() {
-		// given
-		val noneUserId = 11L
-
-		// when then
-		assertThatThrownBy { sut.getById(noneUserId) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("User 엔티티를 찾을 수 없습니다. Id=11")
-	}
-
-	@Test
 	fun `uuid를 통해 유저 조회 시, userRepository의 getByUuid 메서드를 호출한다`() {
 		// given
 		val uuid = "asidf8923n212"
@@ -92,14 +60,18 @@ class UserServiceUnitTest {
 	@Test
 	fun `uuid 업데이트 시, 파라미터로 넘긴 uuid가 유저 정보에 반영되고 저장하는 메서드를 호출한다`() {
 		// given
+		val userId = 12L
 		val user = Instancio.of(User::class.java)
-			.set(field(User::id), 12L)
+			.set(field(User::id), userId)
 			.set(field(User::userUUID), "beforeUUID")
 			.create()
 		val changeUUID = "newUUID"
 
+		`when`(userRepository.findById(userId))
+			.then { user }
+
 		// when
-		sut.updateUserUuid(user, changeUUID)
+		sut.saveUserUUID(userId, changeUUID)
 
 		//then
 		assertThat(user.userUUID).isNotEqualTo("beforeUUID")
@@ -108,9 +80,22 @@ class UserServiceUnitTest {
 	}
 
 	@Test
+	fun `uuid 업데이트 시, 없는 유저의 id를 받으면 EntityNotFoundException이 발생한다`() {
+		// given
+		val noneUserId = 11L
+		val userUUID = "myUserUUID"
+
+		// when then
+		assertThatThrownBy { sut.saveUserUUID(noneUserId, userUUID) }
+			.isInstanceOf(EntityNotFoundException::class.java)
+			.hasMessage("User 엔티티를 찾을 수 없습니다. Id=11")
+	}
+
+	@Test
 	fun `충전 요청 시, 유저의 잔액을 증가시키고 충전 내역을 저장하는 메서드를 호출한다`() {
 		// given
 		val chargeAmount = 2000
+		val userUUID = "myUserUUID"
 		val user = Instancio.of(User::class.java)
 			.set(field(User::id), 1L)
 			.set(field(User::balance), 8000)
@@ -122,16 +107,81 @@ class UserServiceUnitTest {
 			.set(field(PointHistory::amount), chargeAmount)
 			.create()
 
+		`when`(userRepository.findByUuidForUpdate(userUUID))
+			.then { user }
+
 		mockkObject(PointHistory.Companion)
 		every { PointHistory.charge(user.id, chargeAmount) } returns pointHistory
 
 		// when
-		sut.charge(user, chargeAmount)
+		sut.charge(userUUID, chargeAmount)
 
 		//then
 		verify(userRepository).save(pointHistory)
 		verify(userRepository).save(user)
 
 		assertThat(user.balance).isEqualTo(10000)
+	}
+
+	@Test
+	fun `충전 요청 시, 없는 userUUID로 요청하면 EntityNotFoundException이 발생한다`() {
+		// given
+		val chargeAmount = 2000
+		val userUUID = "myUserUUID"
+
+		`when`(userRepository.findByUuidForUpdate(userUUID))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.charge(userUUID, chargeAmount) }
+			.isInstanceOf(EntityNotFoundException::class.java)
+			.hasMessage("User 엔티티를 찾을 수 없습니다. uuid=myUserUUID")
+	}
+
+	@Test
+	fun `사용 요청 시, 유저의 잔액을 차감하고 사용 내역을 저장하는 메서드를 호출한다`() {
+		// given
+		val useAmount = 2000
+		val userUUID = "myUserUUID"
+		val user = Instancio.of(User::class.java)
+			.set(field(User::id), 1L)
+			.set(field(User::balance), 8000)
+			.set(field(User::pointHistories), mutableListOf<PointHistory>())
+			.create()
+
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::type), PointHistoryType.USE)
+			.set(field(PointHistory::amount), useAmount)
+			.create()
+
+		`when`(userRepository.findByUuidForUpdate(userUUID))
+			.then { user }
+
+		mockkObject(PointHistory.Companion)
+		every { PointHistory.use(user.id, useAmount) } returns pointHistory
+
+		// when
+		sut.use(userUUID, useAmount)
+
+		//then
+		verify(userRepository).save(pointHistory)
+		verify(userRepository).save(user)
+
+		assertThat(user.balance).isEqualTo(6000)
+	}
+
+	@Test
+	fun `사용 요청 시, 없는 userUUID로 요청하면 EntityNotFoundException이 발생한다`() {
+		// given
+		val useAmount = 2000
+		val userUUID = "myUserUUID"
+
+		`when`(userRepository.findByUuidForUpdate(userUUID))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.use(userUUID, useAmount) }
+			.isInstanceOf(EntityNotFoundException::class.java)
+			.hasMessage("User 엔티티를 찾을 수 없습니다. uuid=myUserUUID")
 	}
 }

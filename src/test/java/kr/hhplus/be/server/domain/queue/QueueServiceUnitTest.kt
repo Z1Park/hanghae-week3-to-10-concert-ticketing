@@ -216,4 +216,24 @@ class QueueServiceUnitTest {
 		assertThat(tokens).hasSize(3)
 			.allMatch { it.activateStatus == QueueActiveStatus.ACTIVATED }
 	}
+
+	@Test
+	fun `토큰 비활성화 요청 시, 토큰 상태를 변경 후 저장하는 메서드를 호출한다`() {
+		// given
+		val tokenUUID = "myTokenUUID"
+		val token = Instancio.of(Queue::class.java)
+			.set(field(Queue::activateStatus), QueueActiveStatus.ACTIVATED)
+			.create()
+
+		`when`(queueRepository.findByUUID(tokenUUID))
+			.then { token }
+
+		// when
+		sut.deactivateToken(tokenUUID)
+
+		//then
+		verify(queueRepository).save(token)
+
+		assertThat(token.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)
+	}
 }

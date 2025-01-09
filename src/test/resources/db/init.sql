@@ -13,7 +13,8 @@ CREATE TABLE `point_history` (
   `type` VARCHAR(255) NOT NULL,
   `amount` INT NOT NULL,
   `created_at` TIMESTAMP(6) NOT NULL,
-  `updated_at` TIMESTAMP(6) NOT NULL
+  `updated_at` TIMESTAMP(6) NOT NULL,
+    INDEX idx_user_id (user_id)
 );
 
 CREATE TABLE `queue` (
@@ -67,4 +68,16 @@ CREATE TABLE `reservation` (
     `created_at` TIMESTAMP(6) NOT NULL,
     `updated_at` TIMESTAMP(6) NOT NULL,
     INDEX cmp_idx_concert_schedule_seat_id (concert_schedule_id, concert_seat_id)
+);
+
+CREATE TABLE `payment` (
+    `id` BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL,
+    `reservation_id` BIGINT NOT NULL,
+    `price` INT NOT NULL,
+    `created_at` TIMESTAMP(6) NOT NULL,
+    `updated_at` TIMESTAMP(6) NOT NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_reservation_id (reservation_id),
+    UNIQUE (user_id, reservation_id)
 );

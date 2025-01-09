@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 @SpringBootTest
@@ -69,5 +70,20 @@ class QueueServiceIntegrationTest(
 		assertThat(activatedQueues).hasSize(80)
 			.allMatch { it.expiredAt != null }
 			.allMatch { it.createdAt.isBefore(minWaitingTokenTime) }
+	}
+
+	@Test
+	fun `토큰 비활성화 시, tokenUUID로 조회한 토큰을 비활성화 시킨다`() {
+		// given
+		val tokenUUID = "myTokenUUID"
+		val token = Queue("myUserUUID", tokenUUID, QueueActiveStatus.ACTIVATED)
+		queueJpaRepository.save(token)
+
+		// when
+		sut.deactivateToken(tokenUUID)
+
+		//then
+		val actual = queueJpaRepository.findByIdOrNull(token.id)!!
+		assertThat(actual.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)
 	}
 }

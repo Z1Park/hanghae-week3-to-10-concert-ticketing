@@ -2,6 +2,8 @@ package kr.hhplus.be.server.domain.reservation
 
 import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.domain.exception.AlreadyReservedException
+import kr.hhplus.be.server.domain.exception.ReservationExpiredException
+import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -22,6 +24,67 @@ class ReservationServiceUnitTest {
 
 	@Mock
 	private lateinit var reservationRepository: ReservationRepository
+
+	@Test
+	fun `결제를 위해 예약 정보 조회 시, 유저 id와 예약 id를 통해 조회하고 예약 내용을 반환한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
+		val userId = 94L
+		val reservationId = 19L
+		val reservation = Instancio.of(Reservation::class.java)
+			.set(field(Reservation::id), reservationId)
+			.set(field(Reservation::userId), userId)
+			.set(field(Reservation::expiredAt), testTime.plusMinutes(10))
+			.create()
+
+		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+			.then { reservation }
+
+		// when
+		val actual = sut.getReservationForPay(userId, reservationId) { testTime }
+
+		//then
+		verify(reservationRepository).findByUserIdAndReservationId(userId, reservationId)
+
+		assertThat(actual.id).isEqualTo(reservationId)
+		assertThat(actual.userId).isEqualTo(userId)
+	}
+
+	@Test
+	fun `결제를 위해 예약 정보 조회 시, 유저 id와 예약된 예약 id가 맞지 않는다면 BadRequestException이 발생한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
+		val userId = 94L
+		val reservationId = 19L
+
+		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
+			.isInstanceOf(BadRequestException::class.java)
+	}
+
+	@Test
+	fun `결제를 위해 예약 정보 조회 시, 예약이 만료되었다면 ReservationExpiredException이 발생한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
+		val userId = 94L
+		val reservationId = 19L
+		val reservation = Instancio.of(Reservation::class.java)
+			.set(field(Reservation::id), reservationId)
+			.set(field(Reservation::userId), userId)
+			.set(field(Reservation::expiredAt), testTime.minusNanos(1000))
+			.create()
+
+		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+			.then { reservation }
+
+		// when then
+		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
+			.isInstanceOf(ReservationExpiredException::class.java)
+			.hasMessage("이미 만료된 예약입니다.")
+	}
 
 	@Test
 	fun `예약 요청 시, 좌석의 예약 정보가 있는지 확인 후 새로 예약을 만들어 저장한다`() {

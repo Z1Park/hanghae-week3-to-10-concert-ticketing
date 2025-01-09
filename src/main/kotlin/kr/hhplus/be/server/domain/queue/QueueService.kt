@@ -60,4 +60,13 @@ class QueueService(
 		waitingTokens.forEach() { it.activate(expiredAt) }
 		queueRepository.saveAll(waitingTokens)
 	}
+
+	@Transactional
+	fun deactivateToken(tokenUUID: String) {
+		val token = queueRepository.findByUUID(tokenUUID)
+			?: throw EntityNotFoundException.fromParam("Queue", "uuid", tokenUUID)
+
+		token.deactivate()
+		queueRepository.save(token)
+	}
 }

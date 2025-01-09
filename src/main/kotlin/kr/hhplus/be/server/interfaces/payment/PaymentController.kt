@@ -2,15 +2,20 @@ package kr.hhplus.be.server.interfaces.payment
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.interfaces.exception.ForbiddenException
-import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
-import org.apache.coyote.BadRequestException
-import org.springframework.web.bind.annotation.*
+import kr.hhplus.be.server.application.payment.PaymentFacadeService
+import kr.hhplus.be.server.interfaces.resolver.QueueToken
+import kr.hhplus.be.server.interfaces.resolver.UserToken
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "결제")
 @RestController
 @RequestMapping("/payments")
-class PaymentController {
+class PaymentController(
+	private val paymentFacadeService: PaymentFacadeService
+) {
 
 	@Operation(
 		summary = "결제 요청 API",
@@ -18,11 +23,11 @@ class PaymentController {
 	)
 	@PostMapping("")
 	fun pay(
-		@CookieValue("user-access-token") userAccessToken: String?,
+		@UserToken userUUID: String,
+		@QueueToken tokenUUID: String,
 		@RequestBody payRequest: PayRequest
 	) {
-		require(payRequest.reservationId != 0) { throw BadRequestException() }
-		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
-		require(payRequest.reservationId != -1) { throw ForbiddenException() }
+		val paymentCri = payRequest.toPaymentCriCreate(userUUID, tokenUUID)
+		paymentFacadeService.payReservation(paymentCri)
 	}
 }
