@@ -30,4 +30,10 @@ class ReservationService(
 		val expiredAt = clockHolder.getCurrentTime().plusMinutes(5)
 		return reservationRepository.save(request.toReservation(expiredAt))
 	}
+
+	@Transactional
+	fun makeSoldOut(reservation: Reservation) {
+		reservation.soldOut()
+		reservationRepository.save(reservation)
+	}
 }

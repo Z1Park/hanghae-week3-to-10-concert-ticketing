@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 @Table(name = "reservation")
 class Reservation(
 	@Column(name = "expired_at")
-	var expiredAt: LocalDateTime,
+	var expiredAt: LocalDateTime?,
 
 	@Column(nullable = false)
 	var price: Int,
@@ -29,9 +29,10 @@ class Reservation(
 ) : BaseEntity() {
 
 	fun isExpired(currentTime: LocalDateTime): Boolean {
-		if (expiredAt == null) {
-			return false
-		}
-		return expiredAt.isBefore(currentTime)
+		return expiredAt?.isBefore(currentTime) ?: false
+	}
+
+	fun soldOut() {
+		expiredAt = null
 	}
 }

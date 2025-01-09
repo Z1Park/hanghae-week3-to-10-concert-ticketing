@@ -15,7 +15,7 @@ data class ReservationResult(
 				reservationId = reservation.id,
 				userId = reservation.userId,
 				seatId = reservation.concertSeatId,
-				reservationExpiredAt = reservation.expiredAt
+				reservationExpiredAt = reservation.expiredAt!!
 			)
 	}
 }

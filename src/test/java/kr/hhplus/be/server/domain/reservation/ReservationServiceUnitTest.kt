@@ -159,4 +159,21 @@ class ReservationServiceUnitTest {
 		assertThat(actual.concertSeatId).isEqualTo(4L)
 		assertThat(actual.expiredAt).isEqualTo(testTime.plusMinutes(5))
 	}
+
+	@Test
+	fun `판매 완료 시, 예약의 expiredAt이 null이 되고 저장하는 메서드를 호출한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 10, 7, 34, 6)
+		val reservation = Instancio.of(Reservation::class.java)
+			.set(field(Reservation::expiredAt), testTime.plusMinutes(10))
+			.create()
+
+		// when
+		sut.makeSoldOut(reservation)
+
+		//then
+		verify(reservationRepository).save(reservation)
+
+		assertThat(reservation.expiredAt).isNull()
+	}
 }

@@ -35,6 +35,9 @@ class PaymentFacadeService(
 			logger.error("rollback payment by error caused : ", e)
 			throw e
 		}
+
+		reservationService.makeSoldOut(reservation)
+
 		queueService.deactivateToken(paymentCri.tokenUUID)
 	}
 }
