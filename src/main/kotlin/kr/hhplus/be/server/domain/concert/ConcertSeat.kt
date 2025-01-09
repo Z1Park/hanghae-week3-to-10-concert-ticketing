@@ -17,4 +17,7 @@ class ConcertSeat(
 	@Column(name = "concert_schedule_id", nullable = false)
 	val concertScheduleId: Long
 ) : BaseEntity() {
+
+	fun isOnConcertSchedule(concertScheduleId: Long): Boolean =
+		this.concertScheduleId == concertScheduleId
 }

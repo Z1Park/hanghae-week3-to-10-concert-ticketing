@@ -33,10 +33,10 @@ class Queue(
 		return activateStatus == ACTIVATED
 	}
 
-	fun activate(activateTime: LocalDateTime) {
+	fun activate(expiredAt: LocalDateTime) {
 		if (activateStatus == WAITING) {
 			activateStatus = ACTIVATED
-			expiredAt = activateTime.plusMinutes(20)
+			this.expiredAt = expiredAt
 		}
 	}
 

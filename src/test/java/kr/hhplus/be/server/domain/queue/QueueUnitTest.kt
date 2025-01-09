@@ -48,14 +48,14 @@ class QueueUnitTest {
 		val queue = Instancio.of(Queue::class.java)
 			.set(field(Queue::activateStatus), QueueActiveStatus.WAITING)
 			.create()
-		val testTime = LocalDateTime.of(2025, 1, 7, 13, 56)
+		val expiredAt = LocalDateTime.of(2025, 1, 7, 13, 56)
 
 		// when
-		queue.activate(testTime)
+		queue.activate(expiredAt)
 
 		//then
 		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.ACTIVATED)
-		assertThat(queue.expiredAt).isEqualTo(testTime.plusMinutes(20))
+		assertThat(queue.expiredAt).isEqualTo(expiredAt)
 	}
 
 	@Test
@@ -65,10 +65,10 @@ class QueueUnitTest {
 			.set(field(Queue::activateStatus), QueueActiveStatus.DEACTIVATED)
 			.set(field(Queue::expiredAt), null)
 			.create()
-		val testTime = LocalDateTime.of(2025, 1, 7, 13, 56)
+		val expiredAt = LocalDateTime.of(2025, 1, 7, 13, 56)
 
 		// when
-		queue.activate(testTime)
+		queue.activate(expiredAt)
 
 		//then
 		assertThat(queue.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)

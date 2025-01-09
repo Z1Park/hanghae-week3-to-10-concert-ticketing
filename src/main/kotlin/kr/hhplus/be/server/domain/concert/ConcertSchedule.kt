@@ -22,4 +22,7 @@ class ConcertSchedule(
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "concertScheduleId")
 	val concertSeats: List<ConcertSeat> = mutableListOf()
 ) : BaseEntity() {
+
+	fun isOnConcert(concertId: Long): Boolean =
+		this.concertId == concertId
 }

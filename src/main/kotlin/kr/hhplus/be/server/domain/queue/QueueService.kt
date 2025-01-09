@@ -56,7 +56,8 @@ class QueueService(
 		val pageable = PageRequest.of(0, ACTIVATE_COUNT_PER_SEC - activateTokenCount)
 		val waitingTokens = queueRepository.findAllOrderByCreatedAt(WAITING, pageable)
 
-		waitingTokens.forEach() { it.activate(clockHolder.getCurrentTime()) }
+		val expiredAt = clockHolder.getCurrentTime().plusMinutes(20)
+		waitingTokens.forEach() { it.activate(expiredAt) }
 		queueRepository.saveAll(waitingTokens)
 	}
 }

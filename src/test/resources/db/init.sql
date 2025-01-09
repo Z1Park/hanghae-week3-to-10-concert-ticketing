@@ -46,3 +46,16 @@ CREATE TABLE `concert_seat` (
     `updated_at` TIMESTAMP(6) NOT NULL,
     INDEX idx_concert_schedule_id (concert_schedule_id)
 );
+
+CREATE TABLE `reservation` (
+    `id` BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    `price` INT NOT NULL,
+    `user_id` BIGINT NOT NULL,
+    `concert_id` BIGINT NOT NULL,
+    `concert_schedule_id` BIGINT NOT NULL,
+    `concert_seat_id` BIGINT NOT NULL,
+    `expired_at` TIMESTAMP(6),
+    `created_at` TIMESTAMP(6) NOT NULL,
+    `updated_at` TIMESTAMP(6) NOT NULL,
+    INDEX cmp_idx_concert_schedule_seat_id (concert_schedule_id, concert_seat_id)
+);

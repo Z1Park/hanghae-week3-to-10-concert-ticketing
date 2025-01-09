@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.concert
 
 import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
+import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -122,7 +123,68 @@ class ConcertServiceUnitTest {
 			.hasMessage("ConcertSchedule 엔티티를 찾을 수 없습니다. Id=202")
 	}
 
-	private fun createConcert(id: Long, title: String, provider: String, schedules: List<ConcertSchedule> = listOf()): Concert =
+	@Test
+	fun `좌석 총정보 조회 시, 콘서트-일정-좌석을 전부 조회 후 모든 정보를 취합하여 반환한다`() {
+		// given
+		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val concert = createConcert(1L)
+		val schedule = createSchedule(2L, 1L)
+		val seat = createSeat(3L, 2L, 123)
+
+		`when`(concertRepository.findConcert(1L)).then { concert }
+		`when`(concertRepository.findSchedule(2L)).then { schedule }
+		`when`(concertRepository.findSeat(3L)).then { seat }
+
+		// when
+		val actual = sut.getConcertSeatTotalInformation(command)
+
+		//then
+		assertThat(actual.concertId).isEqualTo(1L)
+		assertThat(actual.concertScheduleId).isEqualTo(2L)
+		assertThat(actual.seatId).isEqualTo(3L)
+		assertThat(actual.seatNumber).isEqualTo(123)
+	}
+
+	@Test
+	fun `좌석 총정보 조회 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 BadRequestException이 발생한다`() {
+		// given
+		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val concert = createConcert(1L)
+		val schedule = createSchedule(2L, 5L)
+		val seat = createSeat(3L, 2L, 123)
+
+		`when`(concertRepository.findConcert(1L)).then { concert }
+		`when`(concertRepository.findSchedule(2L)).then { schedule }
+		`when`(concertRepository.findSeat(3L)).then { seat }
+
+		// when then
+		assertThatThrownBy { sut.getConcertSeatTotalInformation(command) }
+			.isInstanceOf(BadRequestException::class.java)
+	}
+
+	@Test
+	fun `좌석 총정보 조회 시, 서로 연관되지 않은 일정-좌석으로 요청하면 BadRequestException이 발생한다`() {
+		// given
+		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val concert = createConcert(1L)
+		val schedule = createSchedule(2L, 1L)
+		val seat = createSeat(3L, 7L, 123)
+
+		`when`(concertRepository.findConcert(1L)).then { concert }
+		`when`(concertRepository.findSchedule(2L)).then { schedule }
+		`when`(concertRepository.findSeat(3L)).then { seat }
+
+		// when then
+		assertThatThrownBy { sut.getConcertSeatTotalInformation(command) }
+			.isInstanceOf(BadRequestException::class.java)
+	}
+
+	private fun createConcert(
+		id: Long,
+		title: String = "김항해",
+		provider: String = "항해플러스",
+		schedules: List<ConcertSchedule> = listOf()
+	): Concert =
 		Instancio.of(Concert::class.java)
 			.set(field(Concert::id), id)
 			.set(field(Concert::title), title)

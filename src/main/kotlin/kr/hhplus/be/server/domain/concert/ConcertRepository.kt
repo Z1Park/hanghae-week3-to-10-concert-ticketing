@@ -7,4 +7,10 @@ interface ConcertRepository {
 	fun findConcertWithSchedule(concertId: Long): Concert?
 
 	fun findScheduleWithSeat(scheduleId: Long): ConcertSchedule?
+
+	fun findConcert(concertId: Long): Concert?
+
+	fun findSchedule(concertScheduleId: Long): ConcertSchedule?
+
+	fun findSeat(concertSeatId: Long): ConcertSeat?
 }

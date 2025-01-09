@@ -9,7 +9,7 @@ class ConcertFacadeService(
 	private val concertService: ConcertService
 ) {
 
-	fun getConcertInformation(): List<ConcertInfo.Concert> =
+	fun getConcertInformation(): List<ConcertInfo.ConcertDto> =
 		concertService.getConcert()
 
 	fun getConcertScheduleInformation(concertId: Long): List<ConcertInfo.Schedule> =

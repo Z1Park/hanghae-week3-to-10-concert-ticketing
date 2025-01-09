@@ -1,9 +1,6 @@
-package kr.hhplus.be.server.application.concert
+package kr.hhplus.be.server.domain.concert
 
 import kr.hhplus.be.server.TestContainerCleaner
-import kr.hhplus.be.server.domain.concert.Concert
-import kr.hhplus.be.server.domain.concert.ConcertSchedule
-import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
@@ -15,9 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDateTime
 
 @SpringBootTest
-class ConcertFacadeServiceIntegrationTest(
+class ConcertServiceIntegrationTest(
 	@Autowired private val testContainerCleaner: TestContainerCleaner,
-	@Autowired private val sut: ConcertFacadeService,
+	@Autowired private val sut: ConcertService,
 	@Autowired private val concertJpaRepository: ConcertJpaRepository,
 	@Autowired private val concertScheduleJpaRepository: ConcertScheduleJpaRepository,
 	@Autowired private val concertSeatJpaRepository: ConcertSeatJpaRepository
@@ -39,7 +36,7 @@ class ConcertFacadeServiceIntegrationTest(
 		concertJpaRepository.saveAll(listOf(concert1, concert2, concert3, concert4, concert5))
 
 		// when
-		val actual = sut.getConcertInformation()
+		val actual = sut.getConcert()
 
 		//then
 		assertThat(actual).hasSize(3)
@@ -66,7 +63,7 @@ class ConcertFacadeServiceIntegrationTest(
 		concertScheduleJpaRepository.saveAll(listOf(schedule1, schedule2, schedule3, schedule4, schedule5))
 
 		// when
-		val actual = sut.getConcertScheduleInformation(concert2.id)
+		val actual = sut.getConcertSchedule(concert2.id)
 
 		//then
 		assertThat(actual).hasSize(3)
@@ -96,7 +93,7 @@ class ConcertFacadeServiceIntegrationTest(
 		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4, seat5))
 
 		// when
-		val actual = sut.getConcertSeatInformation(101L, schedule1.id)
+		val actual = sut.getConcertSeat(101L, schedule1.id)
 
 		//then
 		assertThat(actual).hasSize(2)
@@ -110,5 +107,40 @@ class ConcertFacadeServiceIntegrationTest(
 			.noneMatch { it.seatId == seat5.id }
 			.anyMatch { it.seatId == seat1.id }
 			.anyMatch { it.seatId == seat4.id }
+	}
+
+	@Test
+	fun `좌석 총정보 조회 시, 콘서트-일정-좌석의 모든 정보를 취합하여 반환한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 9, 22, 11, 37)
+
+		val concert = Concert("항해콘", "김항해")
+		concertJpaRepository.save(concert)
+
+		val schedule1 = ConcertSchedule(50, testTime, testTime.plusHours(3), concert.id)
+		val schedule2 = ConcertSchedule(50, testTime, testTime.plusHours(5), concert.id)
+		concertScheduleJpaRepository.saveAll(listOf(schedule1, schedule2))
+
+		val seat1 = ConcertSeat(12, 15000, schedule1.id)
+		val seat2 = ConcertSeat(13, 16000, schedule1.id)
+		val seat3 = ConcertSeat(14, 17000, schedule2.id)
+		val seat4 = ConcertSeat(15, 18000, schedule2.id)
+		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4))
+
+		val query = ConcertCommand.Total(concert.id, schedule2.id, seat3.id)
+
+		// when
+		val actual = sut.getConcertSeatTotalInformation(query)
+
+		//then
+		assertThat(actual.concertId).isEqualTo(concert.id)
+		assertThat(actual.title).isEqualTo("항해콘")
+		assertThat(actual.provider).isEqualTo("김항해")
+		assertThat(actual.concertScheduleId).isEqualTo(schedule2.id)
+		assertThat(actual.startAt).isEqualTo(testTime)
+		assertThat(actual.endAt).isEqualTo(testTime.plusHours(5))
+		assertThat(actual.seatId).isEqualTo(seat3.id)
+		assertThat(actual.seatNumber).isEqualTo(14)
+		assertThat(actual.price).isEqualTo(17000)
 	}
 }

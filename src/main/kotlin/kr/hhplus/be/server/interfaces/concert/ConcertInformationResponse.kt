@@ -6,7 +6,7 @@ data class ConcertInformationResponse(
 	val concerts: List<ConcertInformationDto>
 ) {
 	companion object {
-		fun from(concertInfos: List<ConcertInfo.Concert>): ConcertInformationResponse =
+		fun from(concertInfos: List<ConcertInfo.ConcertDto>): ConcertInformationResponse =
 			ConcertInformationResponse(concertInfos.map { ConcertInformationDto.from(it) })
 	}
 }
@@ -17,7 +17,7 @@ data class ConcertInformationDto(
 	val provider: String
 ) {
 	companion object {
-		fun from(concertInfo: ConcertInfo.Concert): ConcertInformationDto =
+		fun from(concertInfo: ConcertInfo.ConcertDto): ConcertInformationDto =
 			ConcertInformationDto(concertInfo.concertId, concertInfo.title, concertInfo.provider)
 	}
 }
