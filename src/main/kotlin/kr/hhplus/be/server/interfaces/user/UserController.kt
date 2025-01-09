@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.user.UserFacadeService
 import kr.hhplus.be.server.common.UuidGenerator
-import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import kr.hhplus.be.server.interfaces.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
@@ -53,9 +52,10 @@ class UserController(
 	)
 	@PostMapping("/balance")
 	fun chargeBalance(
-		@CookieValue("user-access-token") userAccessToken: String?,
-		@RequestBody chargePointRequest: ChargePointRequest
-	) {
-		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+		@UserToken userUUID: String,
+		@RequestBody chargeRequest: ChargeRequest
+	): ChargeResponse {
+		val chargedBalance = userFacadeService.charge(userUUID, chargeRequest.chargeAmount)
+		return ChargeResponse(chargedBalance)
 	}
 }

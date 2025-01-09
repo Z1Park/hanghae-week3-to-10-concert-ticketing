@@ -2,7 +2,10 @@ package kr.hhplus.be.server.application.user
 
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.common.UuidGenerator
+import kr.hhplus.be.server.domain.user.PointHistory
+import kr.hhplus.be.server.domain.user.PointHistoryType
 import kr.hhplus.be.server.domain.user.User
+import kr.hhplus.be.server.infrastructure.user.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +19,8 @@ class UserFacadeServiceIntegrationTest(
 	@Autowired private val testContainerCleaner: TestContainerCleaner,
 	@Autowired private val sut: UserFacadeService,
 	@Autowired private val uuidGenerator: UuidGenerator,
-	@Autowired private val userJpaRepository: UserJpaRepository
+	@Autowired private val userJpaRepository: UserJpaRepository,
+	@Autowired private val pointHistoryJpaRepository: PointHistoryJpaRepository
 ) {
 
 	@BeforeEach
@@ -52,5 +56,32 @@ class UserFacadeServiceIntegrationTest(
 
 		//then
 		assertThat(actual).isEqualTo(8000)
+	}
+
+	@Test
+	fun `충전 요청 시, 유저를 조회 후 잔액을 증가시키고 충전 내역을 저장한다`() {
+		// given
+		val userUUID = "myUserUUID"
+		val chargeAmount = 850
+
+		val user = User("김항해", userUUID, 400)
+		userJpaRepository.save(user)
+
+		val pointHistory = PointHistory(PointHistoryType.CHARGE, 400, user.id)
+		pointHistoryJpaRepository.save(pointHistory)
+
+		// when
+		val actual = sut.charge(userUUID, chargeAmount)
+
+		//then
+		assertThat(actual).isEqualTo(1250)
+
+		val set1 = userJpaRepository.findByIdOrNull(user.id)!!
+		assertThat(set1.balance).isEqualTo(1250)
+
+		val set2 = pointHistoryJpaRepository.findAll().filter { it.userId == user.id }
+		assertThat(set2).hasSize(2)
+			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 400 }
+			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 850 }
 	}
 }

@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.user
 
+import io.mockk.every
+import io.mockk.mockkObject
 import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -88,7 +90,7 @@ class UserServiceUnitTest {
 	}
 
 	@Test
-	fun `uuid 업데이트 시, 파라미터로 넘긴 uuid가 User에 저장되고 save 메서드를 호출한다`() {
+	fun `uuid 업데이트 시, 파라미터로 넘긴 uuid가 유저 정보에 반영되고 저장하는 메서드를 호출한다`() {
 		// given
 		val user = Instancio.of(User::class.java)
 			.set(field(User::id), 12L)
@@ -103,5 +105,33 @@ class UserServiceUnitTest {
 		assertThat(user.userUUID).isNotEqualTo("beforeUUID")
 		assertThat(user.userUUID).isEqualTo("newUUID")
 		verify(userRepository).save(user)
+	}
+
+	@Test
+	fun `충전 요청 시, 유저의 잔액을 증가시키고 충전 내역을 저장하는 메서드를 호출한다`() {
+		// given
+		val chargeAmount = 2000
+		val user = Instancio.of(User::class.java)
+			.set(field(User::id), 1L)
+			.set(field(User::balance), 8000)
+			.set(field(User::pointHistories), mutableListOf<PointHistory>())
+			.create()
+
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::type), PointHistoryType.CHARGE)
+			.set(field(PointHistory::amount), chargeAmount)
+			.create()
+
+		mockkObject(PointHistory.Companion)
+		every { PointHistory.charge(user.id, chargeAmount) } returns pointHistory
+
+		// when
+		sut.charge(user, chargeAmount)
+
+		//then
+		verify(userRepository).save(pointHistory)
+		verify(userRepository).save(user)
+
+		assertThat(user.balance).isEqualTo(10000)
 	}
 }

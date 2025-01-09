@@ -1,8 +1,17 @@
 CREATE TABLE `user` (
   `id` BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(255) NOT NULL,
-  `user_uuid` varchar(255) NOT NULL UNIQUE,
+  `user_uuid` VARCHAR(255) NOT NULL UNIQUE,
   `balance` BIGINT NOT NULL,
+  `created_at` TIMESTAMP(6) NOT NULL,
+  `updated_at` TIMESTAMP(6) NOT NULL
+);
+
+CREATE TABLE `point_history` (
+  `id` BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `type` VARCHAR(255) NOT NULL,
+  `amount` INT NOT NULL,
   `created_at` TIMESTAMP(6) NOT NULL,
   `updated_at` TIMESTAMP(6) NOT NULL
 );

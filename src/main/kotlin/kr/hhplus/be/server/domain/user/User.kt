@@ -1,9 +1,8 @@
 package kr.hhplus.be.server.domain.user
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import kr.hhplus.be.server.domain.BaseEntity
+import org.apache.coyote.BadRequestException
 
 @Entity
 @Table(name = "user")
@@ -16,9 +15,26 @@ class User(
 
 	@Column(nullable = false, unique = true)
 	var balance: Int,
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "userId")
+	val pointHistories: MutableList<PointHistory> = mutableListOf()
 ) : BaseEntity() {
+
+	companion object {
+		const val BALANCE_LIMIT = 1_000_000
+	}
 
 	fun updateUserUUID(uuid: String) {
 		userUUID = uuid
+	}
+
+	fun charge(amount: Int): PointHistory {
+		require(balance + amount <= BALANCE_LIMIT) { throw BadRequestException() }
+
+		balance += amount
+
+		val pointHistory = PointHistory.charge(id, amount)
+		pointHistories.add(pointHistory)
+		return pointHistory
 	}
 }

@@ -15,9 +15,19 @@ class UserService(
 	fun getByUuid(uuid: String): User = userRepository.findByUuid(uuid)
 		?: throw EntityNotFoundException.fromParam("User", "uuid", uuid)
 
+	fun getByUuidForUpdate(uuid: String): User = userRepository.findByUuidForUpdate(uuid)
+		?: throw EntityNotFoundException.fromParam("User", "uuid", uuid)
+
 	@Transactional
 	fun updateUserUuid(user: User, uuid: String) {
 		user.updateUserUUID(uuid)
+		userRepository.save(user)
+	}
+
+	@Transactional
+	fun charge(user: User, chargeAmount: Int) {
+		val chargePointHistory = user.charge(chargeAmount)
+		userRepository.save(chargePointHistory)
 		userRepository.save(user)
 	}
 }
