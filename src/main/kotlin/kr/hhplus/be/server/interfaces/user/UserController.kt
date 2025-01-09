@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.user.UserFacadeService
 import kr.hhplus.be.server.common.UuidGenerator
 import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
+import kr.hhplus.be.server.interfaces.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -40,12 +41,10 @@ class UserController(
 		description = "유저의 잔액 반환",
 	)
 	@GetMapping("/balance")
-	fun getBalance(
-		@CookieValue("user-access-token") userAccessToken: String?
-	): RemainPointResponse {
-		require(!userAccessToken.isNullOrBlank()) { throw UnauthorizedException() }
+	fun getBalance(@UserToken userUUID: String): UserBalanceResponse {
+		val userBalance = userFacadeService.getUserBalance(userUUID)
 
-		return RemainPointResponse(20000)
+		return UserBalanceResponse(userBalance)
 	}
 
 	@Operation(

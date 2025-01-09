@@ -13,9 +13,14 @@ class UserFacadeService(
 		val user = userService.getById(userId)
 
 		val generatedUuid = uuidGenerator.generateUuid()
-
 		userService.updateUserUuid(user, generatedUuid)
 
 		return generatedUuid
+	}
+
+	fun getUserBalance(userUUID: String): Int {
+		val user = userService.getByUuid(userUUID)
+
+		return user.balance
 	}
 }

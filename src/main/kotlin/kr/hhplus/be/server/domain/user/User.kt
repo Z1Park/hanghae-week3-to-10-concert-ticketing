@@ -15,7 +15,7 @@ class User(
 	var userUUID: String,
 
 	@Column(nullable = false, unique = true)
-	var balance: Long,
+	var balance: Int,
 ) : BaseEntity() {
 
 	fun updateUserUUID(uuid: String) {
