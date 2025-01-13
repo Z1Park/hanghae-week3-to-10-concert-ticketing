@@ -46,17 +46,17 @@ class ReservationFacadeService(
 		val command = PaymentCommand.Create(reservation.price, user.id, reservation.id)
 		val payment = paymentService.pay(command)
 
-		try {
+		runCatching {
 			userService.use(paymentCri.userUUID, payment.price)
-		} catch (e: Exception) {
+		}.onSuccess {
+			reservationService.makeSoldOut(reservation)
+
+			queueService.deactivateToken(paymentCri.tokenUUID)
+		}.onFailure { e ->
 			paymentService.rollbackPayment(payment)
 
 			logger.error("rollback payment by error caused : ", e)
 			throw e
-		}
-
-		reservationService.makeSoldOut(reservation)
-
-		queueService.deactivateToken(paymentCri.tokenUUID)
+		}.getOrThrow()
 	}
 }
