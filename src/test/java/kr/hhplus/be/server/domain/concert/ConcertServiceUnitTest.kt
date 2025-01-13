@@ -54,17 +54,17 @@ class ConcertServiceUnitTest {
 		val schedule2 = createSchedule(2L, concertId)
 		val schedule3 = createSchedule(3L, concertId)
 		val schedules = listOf(schedule1, schedule2, schedule3)
-		val concert = createConcert(concertId, "콘서트1", "가수1", schedules)
+		val concert = createConcert(concertId, "콘서트1", "가수1")
 
-		`when`(concertRepository.findConcertWithSchedule(concertId))
+		`when`(concertRepository.findConcert(concertId))
 			.then { concert }
+		`when`(concertRepository.findAllScheduleByConcertId(concertId))
+			.then { schedules }
 
 		// when
 		val actual = sut.getConcertSchedule(concertId)
 
 		//then
-		verify(concertRepository).findConcertWithSchedule(13L)
-
 		assertThat(actual).hasSize(3)
 			.allMatch { it.concertId == 13L }
 			.anyMatch { it.concertScheduleId == 1L }
@@ -76,7 +76,7 @@ class ConcertServiceUnitTest {
 	fun `콘서트 일정 조회 시, 없는 콘서트 id로 조회하면 EntityNotFoundException이 발생한다`() {
 		// given
 		val concertId = 201L
-		`when`(concertRepository.findConcertWithSchedule(concertId))
+		`when`(concertRepository.findConcert(concertId))
 			.then { null }
 
 		// when then
@@ -94,10 +94,12 @@ class ConcertServiceUnitTest {
 		val seat2 = createSeat(102L, scheduleId, 2)
 		val seat3 = createSeat(103L, scheduleId, 3)
 		val seats = listOf(seat1, seat2, seat3)
-		val schedule = createSchedule(scheduleId, 13L, seats)
+		val schedule = createSchedule(scheduleId, 13L)
 
-		`when`(concertRepository.findScheduleWithSeat(scheduleId))
+		`when`(concertRepository.findSchedule(scheduleId))
 			.then { schedule }
+		`when`(concertRepository.findAllSeatByConcertScheduleId(scheduleId))
+			.then { seats }
 
 		// when
 		val actual = sut.getConcertSeat(1L, scheduleId)
@@ -114,7 +116,7 @@ class ConcertServiceUnitTest {
 	fun `콘서트 좌석 조회 시, 없는 콘서트 일정 id로 조회하면 EntityNotFoundException이 발생한다`() {
 		// given
 		val concertScheduleId = 202L
-		`when`(concertRepository.findScheduleWithSeat(concertScheduleId))
+		`when`(concertRepository.findSchedule(concertScheduleId))
 			.then { null }
 
 		// when then
@@ -136,7 +138,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when
-		val actual = sut.getConcertSeatTotalInformation(command)
+		val actual = sut.getConcertSeatDetailInformation(command)
 
 		//then
 		assertThat(actual.concertId).isEqualTo(1L)
@@ -158,7 +160,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.getConcertSeatTotalInformation(command) }
+		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
 			.isInstanceOf(BadRequestException::class.java)
 	}
 
@@ -175,7 +177,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.getConcertSeatTotalInformation(command) }
+		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
 			.isInstanceOf(BadRequestException::class.java)
 	}
 
@@ -183,21 +185,18 @@ class ConcertServiceUnitTest {
 		id: Long,
 		title: String = "김항해",
 		provider: String = "항해플러스",
-		schedules: List<ConcertSchedule> = listOf()
 	): Concert =
 		Instancio.of(Concert::class.java)
 			.set(field(Concert::id), id)
 			.set(field(Concert::title), title)
 			.set(field(Concert::provider), provider)
 			.set(field(Concert::finished), false)
-			.set(field(Concert::concertSchedules), schedules)
 			.create()
 
-	private fun createSchedule(id: Long, concertId: Long, seats: List<ConcertSeat> = listOf()): ConcertSchedule =
+	private fun createSchedule(id: Long, concertId: Long): ConcertSchedule =
 		Instancio.of(ConcertSchedule::class.java)
 			.set(field(ConcertSchedule::id), id)
 			.set(field(ConcertSchedule::concertId), concertId)
-			.set(field(ConcertSchedule::concertSeats), seats)
 			.create()
 
 	private fun createSeat(id: Long, scheduleId: Long, seatNumber: Int): ConcertSeat =

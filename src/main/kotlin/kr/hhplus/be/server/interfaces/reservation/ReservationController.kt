@@ -2,13 +2,11 @@ package kr.hhplus.be.server.interfaces.reservation
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.application.reservation.PaymentCri
 import kr.hhplus.be.server.application.reservation.ReservationFacadeService
 import kr.hhplus.be.server.interfaces.resolver.QueueToken
 import kr.hhplus.be.server.interfaces.resolver.UserToken
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "예약")
 @RestController
@@ -34,15 +32,15 @@ class ReservationController(
 
 	@Operation(
 		summary = "결제 요청 API",
-		description = "예약 정보를 받아 결제를 진행",
+		description = "좌석 예약을 받아 결제를 진행",
 	)
-	@PostMapping("")
+	@PostMapping("{reservationId}/pay")
 	fun payReservation(
 		@UserToken userUUID: String,
 		@QueueToken tokenUUID: String,
-		@RequestBody payRequest: PayRequest
+		@PathVariable reservationId: Long
 	) {
-		val paymentCri = payRequest.toPaymentCriCreate(userUUID, tokenUUID)
+		val paymentCri = PaymentCri.Create(userUUID, tokenUUID, reservationId)
 		reservationFacadeService.payReservation(paymentCri)
 	}
 }

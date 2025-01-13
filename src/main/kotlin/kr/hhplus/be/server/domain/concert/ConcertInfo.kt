@@ -41,7 +41,7 @@ class ConcertInfo {
 		}
 	}
 
-	data class Total(
+	data class Detail(
 		val concertId: Long,
 		val title: String,
 		val provider: String,
@@ -53,8 +53,8 @@ class ConcertInfo {
 		val price: Int
 	) {
 		companion object {
-			fun of(concert: Concert, concertSchedule: ConcertSchedule, concertSeat: ConcertSeat): Total =
-				Total(
+			fun of(concert: Concert, concertSchedule: ConcertSchedule, concertSeat: ConcertSeat): Detail =
+				Detail(
 					concertId = concert.id,
 					title = concert.title,
 					provider = concert.provider,

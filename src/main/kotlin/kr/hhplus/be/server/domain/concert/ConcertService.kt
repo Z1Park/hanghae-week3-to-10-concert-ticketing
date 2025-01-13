@@ -16,20 +16,22 @@ class ConcertService(
 	}
 
 	fun getConcertSchedule(concertId: Long): List<ConcertInfo.Schedule> {
-		val concert = concertRepository.findConcertWithSchedule(concertId)
+		val concert = concertRepository.findConcert(concertId)
 			?: throw EntityNotFoundException.fromId("Concert", concertId)
 
-		return concert.concertSchedules.map { ConcertInfo.Schedule.from(it) }
+		val concertSchedules = concertRepository.findAllScheduleByConcertId(concert.id)
+		return concertSchedules.map { ConcertInfo.Schedule.from(it) }
 	}
 
 	fun getConcertSeat(concertId: Long, concertScheduleId: Long): List<ConcertInfo.Seat> {
-		val schedule = concertRepository.findScheduleWithSeat(concertScheduleId)
+		val schedule = concertRepository.findSchedule(concertScheduleId)
 			?: throw EntityNotFoundException.fromId("ConcertSchedule", concertScheduleId)
 
-		return schedule.concertSeats.map { ConcertInfo.Seat.of(concertId, it) }
+		val concertSeats = concertRepository.findAllSeatByConcertScheduleId(schedule.id)
+		return concertSeats.map { ConcertInfo.Seat.of(concertId, it) }
 	}
 
-	fun getConcertSeatTotalInformation(command: ConcertCommand.Total): ConcertInfo.Total {
+	fun getConcertSeatDetailInformation(command: ConcertCommand.Total): ConcertInfo.Detail {
 		val concert = concertRepository.findConcert(command.concertId)
 			?: throw EntityNotFoundException.fromId("Concert", command.concertId)
 		val concertSchedule = concertRepository.findSchedule(command.concertScheduleId)
@@ -37,11 +39,9 @@ class ConcertService(
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)
 			?: throw EntityNotFoundException.fromId("ConcertSeat", command.concertSeatId)
 
-		println(concertSchedule.isOnConcert(concert.id))
-		println(concertSeat.isOnConcertSchedule(concertSchedule.id))
 		require(concertSchedule.isOnConcert(concert.id)) { throw BadRequestException() }
 		require(concertSeat.isOnConcertSchedule(concertSchedule.id)) { throw BadRequestException() }
 
-		return ConcertInfo.Total.of(concert, concertSchedule, concertSeat)
+		return ConcertInfo.Detail.of(concert, concertSchedule, concertSeat)
 	}
 }

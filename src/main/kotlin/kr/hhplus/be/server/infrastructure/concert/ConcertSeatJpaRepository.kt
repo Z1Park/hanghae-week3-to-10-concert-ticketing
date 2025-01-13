@@ -4,4 +4,6 @@ import kr.hhplus.be.server.domain.concert.ConcertSeat
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ConcertSeatJpaRepository : JpaRepository<ConcertSeat, Long> {
+
+	fun findAllByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat>
 }

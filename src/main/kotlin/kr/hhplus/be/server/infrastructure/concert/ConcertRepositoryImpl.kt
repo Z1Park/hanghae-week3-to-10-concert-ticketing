@@ -17,12 +17,6 @@ class ConcertRepositoryImpl(
 	override fun findAllConcert(finished: Boolean): List<Concert> =
 		concertJpaRepository.findAllByFinished(finished)
 
-	override fun findConcertWithSchedule(concertId: Long): Concert? =
-		concertJpaRepository.findByIdWithSchedule(concertId)
-
-	override fun findScheduleWithSeat(scheduleId: Long): ConcertSchedule? =
-		concertScheduleJpaRepository.findByIdWithSeat(scheduleId)
-
 	override fun findConcert(concertId: Long): Concert? {
 		return concertJpaRepository.findByIdOrNull(concertId)
 	}
@@ -31,7 +25,17 @@ class ConcertRepositoryImpl(
 		return concertScheduleJpaRepository.findByIdOrNull(concertScheduleId)
 	}
 
+	override fun findAllScheduleByConcertId(concertId: Long): List<ConcertSchedule> {
+		return concertScheduleJpaRepository.findAllByConcertId(concertId)
+	}
+
+
 	override fun findSeat(concertSeatId: Long): ConcertSeat? {
 		return concertSeatJpaRepository.findByIdOrNull(concertSeatId)
 	}
+
+	override fun findAllSeatByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat> {
+		return concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId)
+	}
+
 }

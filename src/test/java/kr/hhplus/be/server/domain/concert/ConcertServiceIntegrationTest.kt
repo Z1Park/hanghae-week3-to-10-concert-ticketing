@@ -130,7 +130,7 @@ class ConcertServiceIntegrationTest(
 		val query = ConcertCommand.Total(concert.id, schedule2.id, seat3.id)
 
 		// when
-		val actual = sut.getConcertSeatTotalInformation(query)
+		val actual = sut.getConcertSeatDetailInformation(query)
 
 		//then
 		assertThat(actual.concertId).isEqualTo(concert.id)

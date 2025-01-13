@@ -25,7 +25,7 @@ class ReservationFacadeService(
 	fun reserveConcertSeat(requestCri: ReservationCri.Create): ReservationResult {
 		val user = userService.getByUuid(requestCri.userUUID)
 
-		val seatTotalInfo = concertService.getConcertSeatTotalInformation(requestCri.toConcertCommandTotal())
+		val seatTotalInfo = concertService.getConcertSeatDetailInformation(requestCri.toConcertCommandTotal())
 
 		val createRequest = ReservationCommand.Create(
 			seatTotalInfo.price,

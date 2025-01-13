@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.concert
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.BaseEntity
 import java.time.LocalDateTime
 
@@ -18,9 +20,6 @@ class ConcertSchedule(
 
 	@Column(name = "concert_id", nullable = false)
 	val concertId: Long,
-
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "concertScheduleId")
-	val concertSeats: List<ConcertSeat> = mutableListOf()
 ) : BaseEntity() {
 
 	fun isOnConcert(concertId: Long): Boolean =
