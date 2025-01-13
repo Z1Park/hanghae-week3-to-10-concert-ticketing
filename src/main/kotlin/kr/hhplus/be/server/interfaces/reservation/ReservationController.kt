@@ -31,4 +31,18 @@ class ReservationController(
 
 		return ConcertReservationResponse.from(reservationResult)
 	}
+
+	@Operation(
+		summary = "결제 요청 API",
+		description = "예약 정보를 받아 결제를 진행",
+	)
+	@PostMapping("")
+	fun payReservation(
+		@UserToken userUUID: String,
+		@QueueToken tokenUUID: String,
+		@RequestBody payRequest: PayRequest
+	) {
+		val paymentCri = payRequest.toPaymentCriCreate(userUUID, tokenUUID)
+		reservationFacadeService.payReservation(paymentCri)
+	}
 }

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.payment
+package kr.hhplus.be.server.application.reservation
 
 class PaymentCri {
 

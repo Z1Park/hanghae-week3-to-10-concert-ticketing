@@ -1,6 +1,6 @@
-package kr.hhplus.be.server.interfaces.payment
+package kr.hhplus.be.server.interfaces.reservation
 
-import kr.hhplus.be.server.application.payment.PaymentCri
+import kr.hhplus.be.server.application.reservation.PaymentCri
 
 data class PayRequest(
 	val reservationId: Long
