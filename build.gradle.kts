@@ -44,20 +44,25 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    // Spring
+	// Spring
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // DB
+	// DB
 	runtimeOnly("com.mysql:mysql-connector-j")
 
-    // Test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+	// DOCS
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+
+	// Test
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	testImplementation("org.instancio:instancio-junit:5.2.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("io.mockk:mockk:1.13.8")
 }
 
 tasks.withType<Test> {

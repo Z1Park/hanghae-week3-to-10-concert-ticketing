@@ -1,11 +1,23 @@
 package kr.hhplus.be.server.interfaces.concert
 
+import kr.hhplus.be.server.domain.concert.ConcertInfo
+
 data class ConcertInformationResponse(
-    val concerts: MutableList<ConcertInformationDto>
-)
+	val concerts: List<ConcertInformationDto>
+) {
+	companion object {
+		fun from(concertInfos: List<ConcertInfo.ConcertDto>): ConcertInformationResponse =
+			ConcertInformationResponse(concertInfos.map { ConcertInformationDto.from(it) })
+	}
+}
 
 data class ConcertInformationDto(
-    val concertId: Long,
-    val title: String,
-    val provider: String
-)
+	val concertId: Long,
+	val title: String,
+	val provider: String
+) {
+	companion object {
+		fun from(concertInfo: ConcertInfo.ConcertDto): ConcertInformationDto =
+			ConcertInformationDto(concertInfo.concertId, concertInfo.title, concertInfo.provider)
+	}
+}
