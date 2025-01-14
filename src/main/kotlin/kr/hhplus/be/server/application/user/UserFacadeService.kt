@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.user
 
-import kr.hhplus.be.server.common.UuidGenerator
+import kr.hhplus.be.server.common.component.UuidGenerator
 import kr.hhplus.be.server.domain.user.UserService
 import org.springframework.stereotype.Service
 

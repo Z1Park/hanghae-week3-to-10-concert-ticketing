@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.reservation.PaymentCri
 import kr.hhplus.be.server.application.reservation.ReservationFacadeService
-import kr.hhplus.be.server.interfaces.resolver.QueueToken
-import kr.hhplus.be.server.interfaces.resolver.UserToken
+import kr.hhplus.be.server.common.resolver.QueueToken
+import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "예약")

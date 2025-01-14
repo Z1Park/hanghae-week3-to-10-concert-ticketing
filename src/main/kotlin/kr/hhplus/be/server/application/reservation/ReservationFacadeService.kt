@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.reservation
 
-import kr.hhplus.be.server.common.ClockHolder
+import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
 import kr.hhplus.be.server.domain.payment.PaymentService

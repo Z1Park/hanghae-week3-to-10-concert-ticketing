@@ -3,8 +3,8 @@ package kr.hhplus.be.server.interfaces.user
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.user.UserFacadeService
-import kr.hhplus.be.server.common.UuidGenerator
-import kr.hhplus.be.server.interfaces.resolver.UserToken
+import kr.hhplus.be.server.common.component.UuidGenerator
+import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie

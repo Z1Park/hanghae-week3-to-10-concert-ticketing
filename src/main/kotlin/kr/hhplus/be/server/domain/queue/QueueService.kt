@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.queue
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.common.ClockHolder
+import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.queue.QueueActiveStatus.ACTIVATED
 import kr.hhplus.be.server.domain.queue.QueueActiveStatus.WAITING
 import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException

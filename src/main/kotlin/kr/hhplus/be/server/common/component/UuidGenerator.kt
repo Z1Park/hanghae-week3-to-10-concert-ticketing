@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common
+package kr.hhplus.be.server.common.component
 
 fun interface UuidGenerator {
 

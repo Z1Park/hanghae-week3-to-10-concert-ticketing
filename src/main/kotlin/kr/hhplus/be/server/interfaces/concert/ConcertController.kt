@@ -3,8 +3,8 @@ package kr.hhplus.be.server.interfaces.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.concert.ConcertFacadeService
-import kr.hhplus.be.server.interfaces.resolver.QueueToken
-import kr.hhplus.be.server.interfaces.resolver.UserToken
+import kr.hhplus.be.server.common.resolver.QueueToken
+import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping

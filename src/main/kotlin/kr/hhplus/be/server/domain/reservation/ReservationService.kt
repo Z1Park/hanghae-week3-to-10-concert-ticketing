@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.reservation
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.common.ClockHolder
+import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.exception.AlreadyReservedException
 import kr.hhplus.be.server.domain.exception.ReservationExpiredException
 import org.apache.coyote.BadRequestException
