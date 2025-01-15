@@ -23,15 +23,15 @@ class ReservationService(
 	}
 
 	@Transactional
-	fun reserve(request: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
-		val seatReservation = reservationRepository.findByScheduleAndSeatForUpdate(request.concertScheduleId, request.concertSeatId)
+	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
+		val seatReservation = reservationRepository.findByScheduleAndSeatForUpdate(command.concertScheduleId, command.concertSeatId)
 		val currentTime = clockHolder.getCurrentTime()
 		require(seatReservation == null || seatReservation.isExpired(currentTime)) {
 			throw CustomException(ErrorCode.ALREADY_RESERVED)
 		}
 
 		val expiredAt = clockHolder.getCurrentTime().plusMinutes(5)
-		return reservationRepository.save(request.toReservation(expiredAt))
+		return reservationRepository.save(command.toReservation(expiredAt))
 	}
 
 	@Transactional

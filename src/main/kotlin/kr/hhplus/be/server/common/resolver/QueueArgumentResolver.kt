@@ -2,7 +2,6 @@ package kr.hhplus.be.server.common.resolver
 
 import kr.hhplus.be.server.common.component.TokenContext
 import kr.hhplus.be.server.domain.queue.Queue
-import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory
@@ -14,7 +13,6 @@ private const val QUEUE_TOKEN_COOKIE_NAME = "queue-access-token"
 
 @Component
 class QueueArgumentResolver : HandlerMethodArgumentResolver {
-	private val log = LoggerFactory.getLogger(this.javaClass)!!
 
 	override fun supportsParameter(parameter: MethodParameter): Boolean =
 		parameter.hasMethodAnnotation(QueueToken::class.java) && parameter.parameterType == Queue::class.java

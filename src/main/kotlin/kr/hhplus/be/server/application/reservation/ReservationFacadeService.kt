@@ -20,21 +20,21 @@ class ReservationFacadeService(
 	private val queueService: QueueService,
 	private val clockHolder: ClockHolder
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
+	private val log = LoggerFactory.getLogger(javaClass)
 
 	fun reserveConcertSeat(requestCri: ReservationCri.Create): ReservationResult {
 		val user = userService.getByUuid(requestCri.userUUID)
 
 		val seatTotalInfo = concertService.getConcertSeatDetailInformation(requestCri.toConcertCommandTotal())
 
-		val createRequest = ReservationCommand.Create(
+		val command = ReservationCommand.Create(
 			seatTotalInfo.price,
 			user.id,
 			seatTotalInfo.concertId,
 			seatTotalInfo.concertScheduleId,
 			seatTotalInfo.seatId
 		)
-		val reservation = reservationService.reserve(createRequest, clockHolder)
+		val reservation = reservationService.reserve(command, clockHolder)
 		return ReservationResult.from(reservation)
 	}
 
@@ -44,19 +44,20 @@ class ReservationFacadeService(
 		val reservation = reservationService.getReservationForPay(user.id, paymentCri.reservationId, clockHolder)
 
 		val command = PaymentCommand.Create(reservation.price, user.id, reservation.id)
+		log.debug("결제 : command={}", command)
 		val payment = paymentService.pay(command)
 
 		runCatching {
 			userService.use(paymentCri.userUUID, payment.price)
+		}.onFailure { e ->
+			log.error("포인트 처리 실패 및 롤백 처리 : ", e)
+
+			paymentService.rollbackPayment(payment)
+			throw e
 		}.onSuccess {
 			reservationService.makeSoldOut(reservation)
 
 			queueService.deactivateToken(paymentCri.tokenUUID)
-		}.onFailure { e ->
-			paymentService.rollbackPayment(payment)
-
-			logger.error("rollback payment by error caused : ", e)
-			throw e
 		}.getOrThrow()
 	}
 }
