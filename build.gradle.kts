@@ -53,7 +53,7 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// DOCS
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

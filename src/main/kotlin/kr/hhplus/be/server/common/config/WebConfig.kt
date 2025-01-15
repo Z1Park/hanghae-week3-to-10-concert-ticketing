@@ -14,13 +14,17 @@ class WebConfig(
 
 	override fun addInterceptors(registry: InterceptorRegistry) {
 		registry.addInterceptor(userTokenInterceptor)
-			.addPathPatterns("/**")
+			.addPathPatterns(
+				"/tokens/**",
+				"/concerts/**",
+				"/reservations/**",
+				"/users/balance",
+			)
 
 		registry.addInterceptor(queueTokenInterceptor)
 			.addPathPatterns(
 				"/tokens/activate",
 				"/reservations/**",
-				"/users/**",
 				"/concerts/**",
 			)
 	}
