@@ -3,8 +3,9 @@ package kr.hhplus.be.server.common.interceptor
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kr.hhplus.be.server.common.component.TokenContext
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.user.UserService
-import kr.hhplus.be.server.interfaces.exception.UnauthorizedException
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 
@@ -14,14 +15,18 @@ class UserTokenInterceptor(
 ) : HandlerInterceptor {
 
 	override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-		return runCatching {
-			val userToken = request.cookies.find { it.name == "" }!!.value
+		val userToken = request.cookies.find { it.name == "" }?.value
+		require(!userToken.isNullOrBlank()) { throw CustomException(ErrorCode.USER_TOKEN_NOT_FOUND) }
 
-			val userUUID = userService.getByUuid(userToken).userUUID
-			TokenContext.setUserToken(userUUID)
+		val userUUID = runCatching {
+			userService.getByUuid(userToken).userUUID
+		}.onFailure {
+			throw CustomException(ErrorCode.INVALID_USER_TOKEN, "userToken=$userToken")
+		}.getOrThrow()
 
-			true
-		}.getOrElse { throw UnauthorizedException() }
+		TokenContext.setUserToken(userUUID)
+
+		return true
 	}
 
 	override fun afterCompletion(request: HttpServletRequest, response: HttpServletResponse, handler: Any, ex: Exception?) {

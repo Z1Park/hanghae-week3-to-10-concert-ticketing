@@ -1,7 +1,8 @@
 package kr.hhplus.be.server.domain.user
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,12 +11,12 @@ class UserService(
 ) {
 
 	fun getByUuid(uuid: String): User = userRepository.findByUuid(uuid)
-		?: throw EntityNotFoundException.fromParam("User", "uuid", uuid)
+		?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$uuid")
 
 	@Transactional
 	fun saveUserUUID(userId: Long, uuid: String): User {
 		val user = userRepository.findById(userId)
-			?: throw EntityNotFoundException.fromId("User", userId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userId=$userId")
 
 		user.updateUserUUID(uuid)
 		return userRepository.save(user)
@@ -24,7 +25,7 @@ class UserService(
 	@Transactional
 	fun charge(userUUID: String, chargeAmount: Int): User {
 		val user = userRepository.findByUuidForUpdate(userUUID)
-			?: throw EntityNotFoundException.fromParam("User", "uuid", userUUID)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val chargePointHistory = user.charge(chargeAmount)
 		userRepository.save(chargePointHistory)
@@ -34,7 +35,7 @@ class UserService(
 	@Transactional
 	fun use(userUUID: String, useAmount: Int): User {
 		val user = userRepository.findByUuidForUpdate(userUUID)
-			?: throw EntityNotFoundException.fromParam("User", "uuid", userUUID)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val usePointHistory = user.use(useAmount)
 		userRepository.save(usePointHistory)

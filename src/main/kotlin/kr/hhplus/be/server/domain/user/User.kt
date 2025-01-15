@@ -1,8 +1,9 @@
 package kr.hhplus.be.server.domain.user
 
 import jakarta.persistence.*
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.BaseEntity
-import org.apache.coyote.BadRequestException
 
 @Entity
 @Table(name = "user")
@@ -29,7 +30,9 @@ class User(
 	}
 
 	fun charge(amount: Int): PointHistory {
-		require(balance + amount <= BALANCE_LIMIT) { throw BadRequestException() }
+		require(balance + amount <= BALANCE_LIMIT) {
+			throw CustomException(ErrorCode.EXCEED_CHARGE_LIMIT, "balance=$balance, amount=$amount")
+		}
 
 		balance += amount
 
@@ -39,7 +42,9 @@ class User(
 	}
 
 	fun use(amount: Int): PointHistory {
-		require(balance >= amount) { throw BadRequestException() }
+		require(balance >= amount) {
+			throw CustomException(ErrorCode.NOT_ENOUGH_POINT, "balance=$balance, amount=$amount")
+		}
 
 		balance -= amount
 

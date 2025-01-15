@@ -1,9 +1,8 @@
 package kr.hhplus.be.server.domain.reservation
 
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import kr.hhplus.be.server.domain.exception.AlreadyReservedException
-import kr.hhplus.be.server.domain.exception.ReservationExpiredException
-import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -51,7 +50,7 @@ class ReservationServiceUnitTest {
 	}
 
 	@Test
-	fun `결제를 위해 예약 정보 조회 시, 유저 id와 예약된 예약 id가 맞지 않는다면 BadRequestException이 발생한다`() {
+	fun `결제를 위해 예약 정보 조회 시, 유저 id와 예약된 예약 id가 맞지 않는다면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
 		val userId = 94L
@@ -62,11 +61,13 @@ class ReservationServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
-			.isInstanceOf(BadRequestException::class.java)
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
-	fun `결제를 위해 예약 정보 조회 시, 예약이 만료되었다면 ReservationExpiredException이 발생한다`() {
+	fun `결제를 위해 예약 정보 조회 시, 예약이 만료되었다면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
 		val userId = 94L
@@ -82,8 +83,9 @@ class ReservationServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
-			.isInstanceOf(ReservationExpiredException::class.java)
-			.hasMessage("이미 만료된 예약입니다.")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.EXPIRED_RESERVATION)
 	}
 
 	@Test
@@ -114,7 +116,7 @@ class ReservationServiceUnitTest {
 	}
 
 	@Test
-	fun `예약 요청 시, 이미 예약된 자리라면 AlreadyReservedException이 발생한다`() {
+	fun `예약 요청 시, 이미 예약된 자리라면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 1, 12, 2)
 		val request = ReservationCommand.Create(600, 1L, 2L, 3L, 4L)
@@ -127,8 +129,9 @@ class ReservationServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.reserve(request) { testTime } }
-			.isInstanceOf(AlreadyReservedException::class.java)
-			.hasMessage("이미 선택된 좌석입니다.")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ALREADY_RESERVED)
 	}
 
 	@Test

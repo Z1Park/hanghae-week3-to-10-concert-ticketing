@@ -1,7 +1,8 @@
 package kr.hhplus.be.server.domain.payment
 
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
 import org.junit.jupiter.api.Test
@@ -41,7 +42,7 @@ class PaymentServiceUnitTest {
 	}
 
 	@Test
-	fun `결제 요청 시, 이미 동일 userId와 reservationId로 결제한 적이 있다면 BadRequestException이 발생한다`() {
+	fun `결제 요청 시, 이미 동일 userId와 reservationId로 결제한 적이 있다면 CustomException이 발생한다`() {
 		// given
 		val price = 15000
 		val userId = 1L
@@ -58,7 +59,9 @@ class PaymentServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.pay(command) }
-			.isInstanceOf(BadRequestException::class.java)
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ALREADY_PAYED_RESERVATION)
 	}
 
 	@Test

@@ -2,8 +2,9 @@ package kr.hhplus.be.server.domain.user
 
 import io.mockk.every
 import io.mockk.mockkObject
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -42,7 +43,7 @@ class UserUnitTest {
 	}
 
 	@Test
-	fun `충전 요청 시, 충전 후 잔액이 한도를 넘으면 BadRequestException이 발생한다`() {
+	fun `충전 요청 시, 충전 후 잔액이 한도를 넘으면 CustomException이 발생한다`() {
 		// given
 		val chargeAmount = 10_001
 		val user = Instancio.of(User::class.java)
@@ -53,6 +54,8 @@ class UserUnitTest {
 
 		// when then
 		assertThatThrownBy { user.charge(chargeAmount) }
-			.isInstanceOf(BadRequestException::class.java)
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.EXCEED_CHARGE_LIMIT)
 	}
 }

@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.domain.concert
 
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
-import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -73,7 +73,7 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
-	fun `콘서트 일정 조회 시, 없는 콘서트 id로 조회하면 EntityNotFoundException이 발생한다`() {
+	fun `콘서트 일정 조회 시, 없는 콘서트 id로 조회하면 CustomException이 발생한다`() {
 		// given
 		val concertId = 201L
 		`when`(concertRepository.findConcert(concertId))
@@ -81,8 +81,9 @@ class ConcertServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getConcertSchedule(concertId) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("Concert 엔티티를 찾을 수 없습니다. Id=201")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -113,7 +114,7 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
-	fun `콘서트 좌석 조회 시, 없는 콘서트 일정 id로 조회하면 EntityNotFoundException이 발생한다`() {
+	fun `콘서트 좌석 조회 시, 없는 콘서트 일정 id로 조회하면 CustomException이 발생한다`() {
 		// given
 		val concertScheduleId = 202L
 		`when`(concertRepository.findSchedule(concertScheduleId))
@@ -121,8 +122,9 @@ class ConcertServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getConcertSeat(1L, concertScheduleId) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("ConcertSchedule 엔티티를 찾을 수 없습니다. Id=202")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -148,7 +150,7 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 BadRequestException이 발생한다`() {
+	fun `좌석 총정보 조회 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val command = ConcertCommand.Total(1L, 2L, 3L)
 		val concert = createConcert(1L)
@@ -161,11 +163,13 @@ class ConcertServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
-			.isInstanceOf(BadRequestException::class.java)
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.NOT_MATCH_SCHEDULE)
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 서로 연관되지 않은 일정-좌석으로 요청하면 BadRequestException이 발생한다`() {
+	fun `좌석 총정보 조회 시, 서로 연관되지 않은 일정-좌석으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val command = ConcertCommand.Total(1L, 2L, 3L)
 		val concert = createConcert(1L)
@@ -178,7 +182,9 @@ class ConcertServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
-			.isInstanceOf(BadRequestException::class.java)
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.NOT_MATCH_SEAT)
 	}
 
 	private fun createConcert(
