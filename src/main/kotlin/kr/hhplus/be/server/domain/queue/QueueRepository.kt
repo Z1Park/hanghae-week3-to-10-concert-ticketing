@@ -5,6 +5,8 @@ import java.time.LocalDateTime
 
 interface QueueRepository {
 
+	fun findById(tokenId: Long): Queue?
+
 	fun findByUUID(tokenUUID: String): Queue?
 
 	fun findAllByActivateStatusAndExpiredAtBefore(activateStatus: QueueActiveStatus, expiredAt: LocalDateTime): List<Queue>

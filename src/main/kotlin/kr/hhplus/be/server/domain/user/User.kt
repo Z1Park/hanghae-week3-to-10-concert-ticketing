@@ -52,4 +52,12 @@ class User(
 		pointHistories.add(pointHistory)
 		return pointHistory
 	}
+
+	fun rollbackUse(pointHistory: PointHistory) {
+		require(pointHistory.type == PointHistoryType.USE) { throw CustomException(ErrorCode.ROLLBACK_FAIL) }
+
+		balance += pointHistory.amount
+
+		pointHistories.remove(pointHistory)
+	}
 }

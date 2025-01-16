@@ -36,14 +36,14 @@ class ReservationServiceUnitTest {
 			.set(field(Reservation::expiredAt), testTime.plusMinutes(10))
 			.create()
 
-		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+		`when`(reservationRepository.findById(reservationId))
 			.then { reservation }
 
 		// when
-		val actual = sut.getReservationForPay(userId, reservationId) { testTime }
+		val actual = sut.getReservationForPay(reservationId) { testTime }
 
 		//then
-		verify(reservationRepository).findByUserIdAndReservationId(userId, reservationId)
+		verify(reservationRepository).findById(reservationId)
 
 		assertThat(actual.id).isEqualTo(reservationId)
 		assertThat(actual.userId).isEqualTo(userId)
@@ -53,14 +53,13 @@ class ReservationServiceUnitTest {
 	fun `결제를 위해 예약 정보 조회 시, 유저 id와 예약된 예약 id가 맞지 않는다면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
-		val userId = 94L
 		val reservationId = 19L
 
-		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+		`when`(reservationRepository.findById(reservationId))
 			.then { null }
 
 		// when then
-		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
+		assertThatThrownBy { sut.getReservationForPay(reservationId) { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
@@ -70,19 +69,17 @@ class ReservationServiceUnitTest {
 	fun `결제를 위해 예약 정보 조회 시, 예약이 만료되었다면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 12, 13, 53)
-		val userId = 94L
 		val reservationId = 19L
 		val reservation = Instancio.of(Reservation::class.java)
 			.set(field(Reservation::id), reservationId)
-			.set(field(Reservation::userId), userId)
 			.set(field(Reservation::expiredAt), testTime.minusNanos(1000))
 			.create()
 
-		`when`(reservationRepository.findByUserIdAndReservationId(userId, reservationId))
+		`when`(reservationRepository.findById(reservationId))
 			.then { reservation }
 
 		// when then
-		assertThatThrownBy { sut.getReservationForPay(userId, reservationId) { testTime } }
+		assertThatThrownBy { sut.getReservationForPay(reservationId) { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.EXPIRED_RESERVATION)
@@ -92,8 +89,8 @@ class ReservationServiceUnitTest {
 	fun `예약 요청 시, 좌석의 예약 정보가 있는지 확인 후 새로 예약을 만들어 저장한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 1, 12, 2)
-		val request = ReservationCommand.Create(780, 1L, 2L, 3L, 4L)
-		val reservation = request.toReservation(testTime.plusMinutes(5))
+		val request = ReservationCommand.Create(780, 1L, 2L, 3L, 4L, testTime.plusMinutes(5))
+		val reservation = request.toReservation()
 
 		`when`(reservationRepository.findByScheduleAndSeatForUpdate(3L, 4L))
 			.then { null }
@@ -119,9 +116,10 @@ class ReservationServiceUnitTest {
 	fun `예약 요청 시, 이미 예약된 자리라면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 1, 12, 2)
-		val request = ReservationCommand.Create(600, 1L, 2L, 3L, 4L)
+		val expiredAt = testTime.plusNanos(1000)
+		val request = ReservationCommand.Create(600, 1L, 2L, 3L, 4L, expiredAt)
 		val reservation = Instancio.of(Reservation::class.java)
-			.set(field(Reservation::expiredAt), testTime.plusNanos(1000))
+			.set(field(Reservation::expiredAt), expiredAt)
 			.create()
 
 		`when`(reservationRepository.findByScheduleAndSeatForUpdate(3L, 4L))
@@ -135,11 +133,11 @@ class ReservationServiceUnitTest {
 	}
 
 	@Test
-	fun `예약 요청 시, 이미 예약된 자리더라도 예약이 만료되었다면 새로 예약을 만들어 저장한다`() {
+	fun `예약 요청 시, 이미 예약된 자리더라도 예약이 만료되었다면 삭제 후 새로 예약을 만들어 저장한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 1, 12, 2)
-		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L)
-		val reservation = request.toReservation(testTime.plusMinutes(5))
+		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L, testTime.plusMinutes(5))
+		val reservation = request.toReservation()
 		val existReservation = Instancio.of(Reservation::class.java)
 			.set(field(Reservation::expiredAt), testTime.minusNanos(1000))
 			.create()
@@ -153,8 +151,7 @@ class ReservationServiceUnitTest {
 		val actual = sut.reserve(request) { testTime }
 
 		//then
-		verify(reservationRepository).findByScheduleAndSeatForUpdate(3L, 4L)
-		verify(reservationRepository).save(reservation)
+		verify(reservationRepository).delete(existReservation)
 
 		assertThat(actual.userId).isEqualTo(1L)
 		assertThat(actual.concertId).isEqualTo(2L)
@@ -164,19 +161,60 @@ class ReservationServiceUnitTest {
 	}
 
 	@Test
-	fun `판매 완료 시, 예약의 expiredAt이 null이 되고 저장하는 메서드를 호출한다`() {
+	fun `결제 완료 시, 예약의 expiredAt이 null이 되고 저장하는 메서드를 호출한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 7, 34, 6)
+
+		val reservationId = 13L
 		val reservation = Instancio.of(Reservation::class.java)
+			.set(field(Reservation::id), reservationId)
 			.set(field(Reservation::expiredAt), testTime.plusMinutes(10))
 			.create()
 
+		`when`(reservationRepository.findById(reservationId))
+			.then { reservation }
+
 		// when
-		sut.makeSoldOut(reservation)
+		sut.makeSoldOut(reservationId)
 
 		//then
 		verify(reservationRepository).save(reservation)
 
 		assertThat(reservation.expiredAt).isNull()
+	}
+
+	@Test
+	fun `예약 롤백 시, reservationId에 따라 조회 후 만료 시간을 롤백한다`() {
+		// given
+		val reservationId = 74L
+		val testTime = LocalDateTime.of(2025, 1, 16, 9, 36, 5)
+		val reservation = Instancio.of(Reservation::class.java).create()
+
+		`when`(reservationRepository.findById(reservationId))
+			.then { reservation }
+
+		// when
+		sut.rollbackReservation(reservationId, testTime)
+
+		//then
+		assertThat(reservation.expiredAt).isEqualTo(testTime)
+
+		verify(reservationRepository).save(reservation)
+	}
+
+	@Test
+	fun `예약 롤백 시, 없는 reservationId라면 CustomException이 발생한다`() {
+		// given
+		val reservationId = 74L
+		val testTime = LocalDateTime.of(2025, 1, 16, 9, 36, 5)
+
+		`when`(reservationRepository.findById(reservationId))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.rollbackReservation(reservationId, testTime) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 }

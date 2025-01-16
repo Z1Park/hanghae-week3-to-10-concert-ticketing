@@ -13,4 +13,6 @@ interface ConcertRepository {
 	fun findSeat(concertSeatId: Long): ConcertSeat?
 
 	fun findAllSeatByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat>
+
+	fun save(concertSeat: ConcertSeat): ConcertSeat
 }

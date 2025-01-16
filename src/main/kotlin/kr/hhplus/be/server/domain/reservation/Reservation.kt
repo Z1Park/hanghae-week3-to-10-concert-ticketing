@@ -35,4 +35,10 @@ class Reservation(
 	fun soldOut() {
 		expiredAt = null
 	}
+
+	fun rollbackSoldOut(expiredAt: LocalDateTime?) {
+		if (this.expiredAt == null) {
+			this.expiredAt = expiredAt
+		}
+	}
 }

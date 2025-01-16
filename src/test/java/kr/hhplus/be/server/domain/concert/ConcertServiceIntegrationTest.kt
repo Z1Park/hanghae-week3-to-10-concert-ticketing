@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 @SpringBootTest
@@ -85,11 +86,11 @@ class ConcertServiceIntegrationTest(
 		val schedule2 = ConcertSchedule(50, testTime, testTime.plusHours(2), 101L)
 		concertScheduleJpaRepository.saveAll(listOf(schedule1, schedule2))
 
-		val seat1 = ConcertSeat(1, 15000, schedule1.id)
-		val seat2 = ConcertSeat(2, 15000, schedule2.id)
-		val seat3 = ConcertSeat(3, 15000, schedule2.id)
-		val seat4 = ConcertSeat(4, 15000, schedule1.id)
-		val seat5 = ConcertSeat(5, 15000, schedule2.id)
+		val seat1 = ConcertSeat(1, 15000, schedule1.id, testTime)
+		val seat2 = ConcertSeat(2, 15000, schedule2.id, testTime)
+		val seat3 = ConcertSeat(3, 15000, schedule2.id, testTime)
+		val seat4 = ConcertSeat(4, 15000, schedule1.id, testTime)
+		val seat5 = ConcertSeat(5, 15000, schedule2.id, testTime)
 		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4, seat5))
 
 		// when
@@ -110,7 +111,7 @@ class ConcertServiceIntegrationTest(
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 콘서트-일정-좌석의 모든 정보를 취합하여 반환한다`() {
+	fun `좌석 선점 시, 5분 후 까지 해당 좌석을 선점한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 22, 11, 37)
 
@@ -121,26 +122,54 @@ class ConcertServiceIntegrationTest(
 		val schedule2 = ConcertSchedule(50, testTime, testTime.plusHours(5), concert.id)
 		concertScheduleJpaRepository.saveAll(listOf(schedule1, schedule2))
 
-		val seat1 = ConcertSeat(12, 15000, schedule1.id)
-		val seat2 = ConcertSeat(13, 16000, schedule1.id)
-		val seat3 = ConcertSeat(14, 17000, schedule2.id)
-		val seat4 = ConcertSeat(15, 18000, schedule2.id)
+		val seat1 = ConcertSeat(12, 15000, schedule1.id, testTime.minusMinutes(1))
+		val seat2 = ConcertSeat(13, 16000, schedule1.id, testTime.minusMinutes(1))
+		val seat3 = ConcertSeat(14, 17000, schedule2.id, testTime.minusMinutes(1))
+		val seat4 = ConcertSeat(15, 18000, schedule2.id, testTime.minusMinutes(1))
 		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4))
 
-		val query = ConcertCommand.Total(concert.id, schedule2.id, seat3.id)
+		val query = ConcertCommand.Reserve(concert.id, schedule2.id, seat3.id)
 
 		// when
-		val actual = sut.getConcertSeatDetailInformation(query)
+		val actual = sut.preoccupyConcertSeat(query) { testTime }
 
 		//then
-		assertThat(actual.concertId).isEqualTo(concert.id)
-		assertThat(actual.title).isEqualTo("항해콘")
-		assertThat(actual.provider).isEqualTo("김항해")
-		assertThat(actual.concertScheduleId).isEqualTo(schedule2.id)
-		assertThat(actual.startAt).isEqualTo(testTime)
-		assertThat(actual.endAt).isEqualTo(testTime.plusHours(5))
-		assertThat(actual.seatId).isEqualTo(seat3.id)
-		assertThat(actual.seatNumber).isEqualTo(14)
+		val expiredAt = testTime.plusMinutes(5)
 		assertThat(actual.price).isEqualTo(17000)
+		assertThat(actual.seatId).isEqualTo(seat3.id)
+		assertThat(actual.expiredAt).isEqualTo(expiredAt)
+
+		val set = concertSeatJpaRepository.findByIdOrNull(seat3.id)!!
+		assertThat(set.reservedUntil).isEqualTo(expiredAt)
+	}
+
+	@Test
+	fun `좌석 매진 요청 시, 해당 좌석의 만료 기한에 null이 저장된다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 9, 22, 11, 37)
+		val seat = ConcertSeat(12, 15000, 3L, testTime)
+		concertSeatJpaRepository.save(seat)
+
+		// when
+		sut.makeSoldOutConcertSeat(seat.id)
+
+		//then
+		val actual = concertSeatJpaRepository.findByIdOrNull(seat.id)!!
+		assertThat(actual.reservedUntil).isNull()
+	}
+
+	@Test
+	fun `좌석 매진 롤백 시, 해당 좌석의 만료 기한이 주어진 기한으로 변경된다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 9, 22, 11, 37)
+		val seat = ConcertSeat(12, 15000, 3L, null)
+		concertSeatJpaRepository.save(seat)
+
+		// when
+		sut.rollbackSoldOutedConcertSeat(seat.id, testTime)
+
+		//then
+		val actual = concertSeatJpaRepository.findByIdOrNull(seat.id)!!
+		assertThat(actual.reservedUntil).isEqualTo(testTime)
 	}
 }

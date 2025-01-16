@@ -13,6 +13,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import java.time.LocalDateTime
 
 @ExtendWith(MockitoExtension::class)
 class ConcertServiceUnitTest {
@@ -128,31 +129,39 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 콘서트-일정-좌석을 전부 조회 후 모든 정보를 취합하여 반환한다`() {
+	fun `좌석 선점 시, 5분 후까지 해당 좌석을 선점한다`() {
 		// given
-		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
-		val seat = createSeat(3L, 2L, 123)
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), 3L)
+			.set(field(ConcertSeat::concertScheduleId), 2L)
+			.set(field(ConcertSeat::price), 2500)
+			.set(field(ConcertSeat::reservedUntil), testTime.minusNanos(1000))
+			.create()
 
 		`when`(concertRepository.findConcert(1L)).then { concert }
 		`when`(concertRepository.findSchedule(2L)).then { schedule }
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when
-		val actual = sut.getConcertSeatDetailInformation(command)
+		val actual = sut.preoccupyConcertSeat(command) { testTime }
 
 		//then
-		assertThat(actual.concertId).isEqualTo(1L)
-		assertThat(actual.concertScheduleId).isEqualTo(2L)
+		val expiredAt = testTime.plusMinutes(5)
+		assertThat(actual.price).isEqualTo(2500)
 		assertThat(actual.seatId).isEqualTo(3L)
-		assertThat(actual.seatNumber).isEqualTo(123)
+		assertThat(actual.expiredAt).isEqualTo(expiredAt)
+		assertThat(seat.reservedUntil).isEqualTo(expiredAt)
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 CustomException이 발생한다`() {
+	fun `좌석 선점 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 CustomException이 발생한다`() {
 		// given
-		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 5L)
 		val seat = createSeat(3L, 2L, 123)
@@ -162,16 +171,17 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
+		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.NOT_MATCH_SCHEDULE)
 	}
 
 	@Test
-	fun `좌석 총정보 조회 시, 서로 연관되지 않은 일정-좌석으로 요청하면 CustomException이 발생한다`() {
+	fun `좌석 선점 시, 서로 연관되지 않은 일정-좌석으로 요청하면 CustomException이 발생한다`() {
 		// given
-		val command = ConcertCommand.Total(1L, 2L, 3L)
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = createSeat(3L, 7L, 123)
@@ -181,10 +191,109 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.getConcertSeatDetailInformation(command) }
+		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.NOT_MATCH_SEAT)
+	}
+
+	@Test
+	fun `좌석 선점 시, 이미 예약된 좌석이라면 CustomException이 발생한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L)
+		val concert = createConcert(1L)
+		val schedule = createSchedule(2L, 1L)
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), 3L)
+			.set(field(ConcertSeat::concertScheduleId), 2L)
+			.set(field(ConcertSeat::reservedUntil), testTime.plusNanos(1000))
+			.create()
+
+		`when`(concertRepository.findConcert(1L)).then { concert }
+		`when`(concertRepository.findSchedule(2L)).then { schedule }
+		`when`(concertRepository.findSeat(3L)).then { seat }
+
+		// when then
+		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ALREADY_RESERVED)
+	}
+
+	@Test
+	fun `좌석 매진 요청 시, 좌석의 만료 기한을 null로 바꾼다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val concertSeatId = 1L
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), concertSeatId)
+			.set(field(ConcertSeat::reservedUntil), testTime)
+			.create()
+
+		`when`(concertRepository.findSeat(concertSeatId))
+			.then { seat }
+
+		// when
+		sut.makeSoldOutConcertSeat(concertSeatId)
+
+		//then
+		assertThat(seat.reservedUntil).isNull()
+
+		verify(concertRepository).save(seat)
+	}
+
+	@Test
+	fun `좌석 매진 요청 시, 잘못된 seatId를 통해 조회하면 CustomException이 발생한다`() {
+		// given
+		val concertSeatId = 1L
+
+		`when`(concertRepository.findSeat(concertSeatId))
+			.then { null }
+
+		// when  then
+		assertThatThrownBy { sut.makeSoldOutConcertSeat(concertSeatId) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
+	fun `좌석 매진 롤백 시, 좌석의 만료 기한을 주어진 기한으로 바꾼다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val concertSeatId = 1L
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), concertSeatId)
+			.set(field(ConcertSeat::reservedUntil), null)
+			.create()
+
+		`when`(concertRepository.findSeat(concertSeatId))
+			.then { seat }
+
+		// when
+		sut.rollbackSoldOutedConcertSeat(concertSeatId, testTime)
+
+		//then
+		assertThat(seat.reservedUntil).isEqualTo(testTime)
+
+		verify(concertRepository).save(seat)
+	}
+
+	@Test
+	fun `좌석 매진 롤백 시, 잘못된 seatId를 통해 조회하면 CustomException이 발생한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
+		val concertSeatId = 1L
+
+		`when`(concertRepository.findSeat(concertSeatId))
+			.then { null }
+
+		// when  then
+		assertThatThrownBy { sut.rollbackSoldOutedConcertSeat(concertSeatId, testTime) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	private fun createConcert(

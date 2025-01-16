@@ -58,4 +58,44 @@ class UserUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.EXCEED_CHARGE_LIMIT)
 	}
+
+	@Test
+	fun `포인트 사용 롤백 시, 사용내역에 따라 잔고가 다시 증가하고 사용 내역을 리스트에서 제거한다`() {
+		// given
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::id), 13L)
+			.set(field(PointHistory::type), PointHistoryType.USE)
+			.set(field(PointHistory::amount), 1500)
+			.create()
+		val user = Instancio.of(User::class.java)
+			.set(field(User::id), 1L)
+			.set(field(User::balance), 3000)
+			.set(field(User::pointHistories), mutableListOf(pointHistory))
+			.create()
+
+		// when
+		user.rollbackUse(pointHistory)
+
+		//then
+		assertThat(user.balance).isEqualTo(4500)
+		assertThat(user.pointHistories).noneMatch { it.id == pointHistory.id }
+	}
+
+	@Test
+	fun `포인트 사용 롤백 시, 충전 요청에 대해 롤백을 시도하면 CustomException이 발생한다`() {
+		// given
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::type), PointHistoryType.CHARGE)
+			.create()
+		val user = Instancio.of(User::class.java)
+			.set(field(User::balance), 3000)
+			.set(field(User::pointHistories), mutableListOf(pointHistory))
+			.create()
+
+		// when then
+		assertThatThrownBy { user.rollbackUse(pointHistory) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ROLLBACK_FAIL)
+	}
 }

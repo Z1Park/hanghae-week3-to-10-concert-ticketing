@@ -63,11 +63,20 @@ class QueueService(
 	}
 
 	@Transactional
-	fun deactivateToken(tokenUUID: String) {
+	fun deactivateToken(tokenUUID: String): Queue {
 		val token = queueRepository.findByUUID(tokenUUID)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "tokenUUID=$tokenUUID")
 
 		token.deactivate()
+		return queueRepository.save(token)
+	}
+
+	@Transactional
+	fun rollbackDeactivateToken(tokenId: Long) {
+		val token = queueRepository.findById(tokenId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "tokenId=$tokenId")
+
+		token.rollbackDeactivation()
 		queueRepository.save(token)
 	}
 }

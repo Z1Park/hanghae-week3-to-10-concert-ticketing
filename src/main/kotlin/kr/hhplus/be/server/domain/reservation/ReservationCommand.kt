@@ -10,9 +10,10 @@ class ReservationCommand {
 		val concertId: Long,
 		val concertScheduleId: Long,
 		val concertSeatId: Long,
+		val expiredAt: LocalDateTime
 	) {
 
-		fun toReservation(expiredAt: LocalDateTime): Reservation =
+		fun toReservation(): Reservation =
 			Reservation(expiredAt, price, userId, concertId, concertScheduleId, concertSeatId)
 	}
 }

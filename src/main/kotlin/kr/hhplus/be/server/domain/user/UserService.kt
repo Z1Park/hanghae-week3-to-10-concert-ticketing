@@ -33,12 +33,23 @@ class UserService(
 	}
 
 	@Transactional
-	fun use(userUUID: String, useAmount: Int): User {
+	fun use(userUUID: String, useAmount: Int): PointHistory {
 		val user = userRepository.findByUuidForUpdate(userUUID)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val usePointHistory = user.use(useAmount)
-		userRepository.save(usePointHistory)
-		return userRepository.save(user)
+		userRepository.save(user)
+		return userRepository.save(usePointHistory)
+	}
+
+	@Transactional
+	fun rollbackUsePointHistory(userId: Long, pointHistoryId: Long) {
+		val user = userRepository.findById(userId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userId=$userId")
+		val pointHistory = userRepository.findPointHistoryById(pointHistoryId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "pointHistoryId=$pointHistoryId")
+
+		user.rollbackUse(pointHistory)
+		userRepository.delete(pointHistory)
 	}
 }

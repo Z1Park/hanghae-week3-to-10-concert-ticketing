@@ -67,10 +67,16 @@ class PaymentServiceUnitTest {
 	@Test
 	fun `롤백 요청 시, 결제를 삭제하는 메서드를 호출한다`() {
 		// given
-		val payment = Instancio.of(Payment::class.java).create()
+		val paymentId = 1L
+		val payment = Instancio.of(Payment::class.java)
+			.set(field(Payment::id), paymentId)
+			.create()
+
+		`when`(paymentRepository.findById(paymentId))
+			.then { payment }
 
 		// when
-		sut.rollbackPayment(payment)
+		sut.rollbackPayment(paymentId)
 
 		//then
 		verify(paymentRepository).delete(payment)

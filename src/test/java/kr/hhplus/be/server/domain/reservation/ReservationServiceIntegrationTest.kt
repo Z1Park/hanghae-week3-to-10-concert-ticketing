@@ -23,15 +23,14 @@ class ReservationServiceIntegrationTest(
 	}
 
 	@Test
-	fun `결제를 위해 예약 조회 요청 시, userId와 reservationId에 맞는 예약을 조회해서 반환한다`() {
+	fun `결제를 위해 예약 조회 요청 시, reservationId에 맞는 예약을 조회해서 반환한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 10, 12, 30, 55)
-		val userId = 1L
-		val reservation = Reservation(testTime.plusMinutes(5), 1000, userId, 2L, 3L, 4L)
+		val reservation = Reservation(testTime.plusMinutes(5), 1000, 1L, 2L, 3L, 4L)
 		reservationJpaRepository.save(reservation)
 
 		// when
-		val actual = sut.getReservationForPay(userId, reservation.id) { testTime }
+		val actual = sut.getReservationForPay(reservation.id) { testTime }
 
 		//then
 		assertThat(actual.expiredAt).isEqualTo(testTime.plusMinutes(5))
@@ -46,7 +45,8 @@ class ReservationServiceIntegrationTest(
 	fun `예약 요청 시, 예약이 없다면 새로운 Reservation을 생성하고 저장한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 19, 43, 31)
-		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L)
+		val expiredAt = testTime.plusMinutes(5)
+		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L, expiredAt)
 
 		// when
 		val actual = sut.reserve(request) { testTime }
@@ -63,10 +63,10 @@ class ReservationServiceIntegrationTest(
 	}
 
 	@Test
-	fun `예약 요청 시, 이미 예약되었지만 만료된 상태라면 Reservation을 생성하고 저장한다`() {
+	fun `예약 요청 시, 이미 예약되었지만 만료된 상태라면 해당 값을 삭제 후 Reservation을 새로 생성하여 저장한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 19, 43, 31)
-		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L)
+		val request = ReservationCommand.Create(1000, 1L, 2L, 3L, 4L, testTime.plusMinutes(5))
 
 		val reservation = Reservation(testTime.minusNanos(1000), 800, 11L, 2L, 3L, 4L)
 		reservationJpaRepository.save(reservation)
@@ -83,5 +83,21 @@ class ReservationServiceIntegrationTest(
 		assertThat(set.concertScheduleId).isEqualTo(3L)
 		assertThat(set.concertSeatId).isEqualTo(4L)
 		assertThat(set.expiredAt).isEqualTo(testTime.plusMinutes(5))
+	}
+
+	@Test
+	fun `예약 롤백 시, reservationId를 통해 저장된 예약을 조회 후 삭제한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 1, 16, 9, 36, 5)
+
+		val reservation = Reservation(null, 1000, 1L, 2L, 3L, 4L)
+		reservationJpaRepository.save(reservation)
+
+		// when
+		sut.rollbackReservation(reservation.id, testTime)
+
+		//then
+		val actual = reservationJpaRepository.findByIdOrNull(reservation.id)!!
+		assertThat(actual.expiredAt).isEqualTo(testTime)
 	}
 }

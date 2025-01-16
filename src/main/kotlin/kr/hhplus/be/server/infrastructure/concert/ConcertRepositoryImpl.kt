@@ -38,4 +38,8 @@ class ConcertRepositoryImpl(
 		return concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId)
 	}
 
+	override fun save(concertSeat: ConcertSeat): ConcertSeat {
+		return concertSeatJpaRepository.save(concertSeat)
+	}
+
 }

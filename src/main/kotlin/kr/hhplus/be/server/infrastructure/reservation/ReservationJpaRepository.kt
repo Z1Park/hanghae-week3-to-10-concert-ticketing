@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.Lock
 
 interface ReservationJpaRepository : JpaRepository<Reservation, Long> {
 
-	fun findByIdAndAndUserId(id: Long, userId: Long): Reservation?
-
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	fun findForUpdateByConcertScheduleIdAndConcertSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation?
 }

@@ -20,5 +20,10 @@ class PaymentService(
 	}
 
 	@Transactional
-	fun rollbackPayment(payment: Payment) = paymentRepository.delete(payment)
+	fun rollbackPayment(paymentId: Long) {
+		val payment = paymentRepository.findById(paymentId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "paymentId=$paymentId")
+
+		paymentRepository.delete(payment)
+	}
 }

@@ -23,5 +23,7 @@ enum class ErrorCode(val httpStatus: HttpStatus, val message: String) {
 
 	NOT_MATCH_SCHEDULE(BAD_REQUEST, "콘서트 내 콘서트 일정이 없습니다."),
 	NOT_MATCH_SEAT(BAD_REQUEST, "콘서트 일정 내 콘서트 좌석이 없습니다."),
+
+	ROLLBACK_FAIL(CONFLICT, "롤백 중 에러가 발생했습니다."),
 	;
 }
