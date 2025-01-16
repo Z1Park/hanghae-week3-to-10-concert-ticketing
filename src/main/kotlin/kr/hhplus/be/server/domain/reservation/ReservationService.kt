@@ -25,7 +25,7 @@ class ReservationService(
 
 	@Transactional
 	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
-		val seatReservation = reservationRepository.findByScheduleAndSeatForUpdate(command.concertScheduleId, command.concertSeatId)
+		val seatReservation = reservationRepository.findByScheduleIdAndSeatId(command.concertScheduleId, command.concertSeatId)
 
 		if (seatReservation != null) {
 			val currentTime = clockHolder.getCurrentTime()

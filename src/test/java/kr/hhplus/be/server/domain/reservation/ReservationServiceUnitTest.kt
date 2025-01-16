@@ -92,7 +92,7 @@ class ReservationServiceUnitTest {
 		val request = ReservationCommand.Create(780, 1L, 2L, 3L, 4L, testTime.plusMinutes(5))
 		val reservation = request.toReservation()
 
-		`when`(reservationRepository.findByScheduleAndSeatForUpdate(3L, 4L))
+		`when`(reservationRepository.findByScheduleIdAndSeatId(3L, 4L))
 			.then { null }
 		`when`(reservationRepository.save(reservation))
 			.then { reservation }
@@ -101,7 +101,7 @@ class ReservationServiceUnitTest {
 		val actual = sut.reserve(request) { testTime }
 
 		//then
-		verify(reservationRepository).findByScheduleAndSeatForUpdate(3L, 4L)
+		verify(reservationRepository).findByScheduleIdAndSeatId(3L, 4L)
 		verify(reservationRepository).save(reservation)
 
 		assertThat(actual.price).isEqualTo(780)
@@ -122,7 +122,7 @@ class ReservationServiceUnitTest {
 			.set(field(Reservation::expiredAt), expiredAt)
 			.create()
 
-		`when`(reservationRepository.findByScheduleAndSeatForUpdate(3L, 4L))
+		`when`(reservationRepository.findByScheduleIdAndSeatId(3L, 4L))
 			.then { reservation }
 
 		// when then
@@ -142,7 +142,7 @@ class ReservationServiceUnitTest {
 			.set(field(Reservation::expiredAt), testTime.minusNanos(1000))
 			.create()
 
-		`when`(reservationRepository.findByScheduleAndSeatForUpdate(3L, 4L))
+		`when`(reservationRepository.findByScheduleIdAndSeatId(3L, 4L))
 			.then { existReservation }
 		`when`(reservationRepository.save(reservation))
 			.then { reservation }

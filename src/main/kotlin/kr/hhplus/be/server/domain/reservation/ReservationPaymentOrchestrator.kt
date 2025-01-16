@@ -22,11 +22,6 @@ class ReservationPaymentOrchestrator(
 	private val flowSet = ThreadLocal<EnumSet<ReservationPaymentFlow>>()
 	private val outbox = ThreadLocal<OutBox>()
 
-	init {
-		flowSet.set(EnumSet.noneOf(ReservationPaymentFlow::class.java))
-		outbox.set(OutBox())
-	}
-
 	private data class OutBox(
 		var userId: Long = 0L,
 		var expiredAt: LocalDateTime? = null,
@@ -38,6 +33,9 @@ class ReservationPaymentOrchestrator(
 	)
 
 	fun setupInitialRollbackInfo(userId: Long, expiredAt: LocalDateTime?) {
+		flowSet.set(EnumSet.noneOf(ReservationPaymentFlow::class.java))
+		outbox.set(OutBox())
+
 		outbox.get().userId = userId
 		outbox.get().expiredAt = expiredAt
 	}

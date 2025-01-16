@@ -13,8 +13,8 @@ class ReservationRepositoryImpl(
 	override fun findById(reservationId: Long): Reservation? =
 		reservationJpaRepository.findByIdOrNull(reservationId)
 
-	override fun findByScheduleAndSeatForUpdate(concertScheduleId: Long, concertSeatId: Long): Reservation? =
-		reservationJpaRepository.findForUpdateByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)
+	override fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation? =
+		reservationJpaRepository.findByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)
 
 	override fun save(reservation: Reservation): Reservation =
 		reservationJpaRepository.save(reservation)

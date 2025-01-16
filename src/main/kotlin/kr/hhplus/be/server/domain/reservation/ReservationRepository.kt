@@ -4,7 +4,7 @@ interface ReservationRepository {
 
 	fun findById(reservationId: Long): Reservation?
 
-	fun findByScheduleAndSeatForUpdate(concertScheduleId: Long, concertSeatId: Long): Reservation?
+	fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation?
 
 	fun save(reservation: Reservation): Reservation
 

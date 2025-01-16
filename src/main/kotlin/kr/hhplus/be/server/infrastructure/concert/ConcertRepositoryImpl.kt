@@ -17,29 +17,21 @@ class ConcertRepositoryImpl(
 	override fun findAllConcert(finished: Boolean): List<Concert> =
 		concertJpaRepository.findAllByFinished(finished)
 
-	override fun findConcert(concertId: Long): Concert? {
-		return concertJpaRepository.findByIdOrNull(concertId)
-	}
+	override fun findConcert(concertId: Long): Concert? =
+		concertJpaRepository.findByIdOrNull(concertId)
 
-	override fun findSchedule(concertScheduleId: Long): ConcertSchedule? {
-		return concertScheduleJpaRepository.findByIdOrNull(concertScheduleId)
-	}
+	override fun findSchedule(concertScheduleId: Long): ConcertSchedule? =
+		concertScheduleJpaRepository.findByIdOrNull(concertScheduleId)
 
-	override fun findAllScheduleByConcertId(concertId: Long): List<ConcertSchedule> {
-		return concertScheduleJpaRepository.findAllByConcertId(concertId)
-	}
+	override fun findAllScheduleByConcertId(concertId: Long): List<ConcertSchedule> =
+		concertScheduleJpaRepository.findAllByConcertId(concertId)
 
+	override fun findSeat(concertSeatId: Long): ConcertSeat? =
+		concertSeatJpaRepository.findByIdOrNull(concertSeatId)
 
-	override fun findSeat(concertSeatId: Long): ConcertSeat? {
-		return concertSeatJpaRepository.findByIdOrNull(concertSeatId)
-	}
+	override fun findAllSeatByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat> =
+		concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId)
 
-	override fun findAllSeatByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat> {
-		return concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId)
-	}
-
-	override fun save(concertSeat: ConcertSeat): ConcertSeat {
-		return concertSeatJpaRepository.save(concertSeat)
-	}
-
+	override fun save(concertSeat: ConcertSeat): ConcertSeat =
+		concertSeatJpaRepository.save(concertSeat)
 }

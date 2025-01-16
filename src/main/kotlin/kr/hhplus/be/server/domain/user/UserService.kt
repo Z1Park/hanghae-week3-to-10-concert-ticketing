@@ -34,7 +34,7 @@ class UserService(
 
 	@Transactional
 	fun use(userUUID: String, useAmount: Int): PointHistory {
-		val user = userRepository.findByUuidForUpdate(userUUID)
+		val user = userRepository.findByUuid(userUUID)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val usePointHistory = user.use(useAmount)
