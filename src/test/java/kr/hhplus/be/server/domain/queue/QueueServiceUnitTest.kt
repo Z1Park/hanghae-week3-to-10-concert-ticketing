@@ -10,6 +10,9 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.verify
@@ -138,6 +141,40 @@ class QueueServiceUnitTest {
 		//then
 		assertThat(actual.myWaitingOrder).isEqualTo(0)
 		assertThat(actual.expectedWaitingSeconds).isEqualTo(0)
+	}
+
+	@ParameterizedTest
+	@EnumSource(QueueActiveStatus::class)
+	fun `토큰 검증 시, 없는 tokenUUID로 조회하면 어떤 RequiredType이더라도 CustomException이 발생한다`(requiredType: QueueActiveStatus) {
+		// given
+
+		// when then
+		assertThatThrownBy { sut.validateQueueToken("noneTokenUUID", requiredType) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_QUEUE_TOKEN)
+	}
+
+	@ParameterizedTest
+	@EnumSource(QueueActiveStatus::class)
+	fun `토큰 검증 시, 토큰의 활성 상태가 ACTIVATED가 아니라면 CustomException이 발생한다`(inputType: QueueActiveStatus) {
+		// given
+		if (inputType == QueueActiveStatus.ACTIVATED) return
+		
+		val tokenUUID = "myTokenUUID"
+		val token = Instancio.of(Queue::class.java)
+			.set(field(Queue::tokenUUID), tokenUUID)
+			.set(field(Queue::activateStatus), inputType)
+			.create()
+
+		`when`(queueRepository.findByUUID(tokenUUID))
+			.then { token }
+
+		// when then
+		assertThatThrownBy { sut.validateQueueToken(tokenUUID, QueueActiveStatus.ACTIVATED) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.REQUIRE_ACTIVATED_QUEUE_TOKEN)
 	}
 
 	@Test

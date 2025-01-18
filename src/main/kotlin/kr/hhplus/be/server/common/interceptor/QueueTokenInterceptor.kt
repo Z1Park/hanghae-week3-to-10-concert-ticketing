@@ -26,19 +26,10 @@ class QueueTokenInterceptor(
 			return true
 		}
 
-		val queue = runCatching {
-			queueService.getByUuid(queueToken)
-		}.onFailure {
-			throw CustomException(ErrorCode.INVALID_QUEUE_TOKEN, "queueToken=$queueToken")
-		}.getOrThrow()
-
-		TokenContext.setQueueToken(queue.tokenUUID)
-
 		val requiredType = handler.getMethodAnnotation(QueueToken::class.java)!!.requiredType
-		if (requiredType == QueueToken.RequiredType.ACTIVATED) {
-			require(queue.isActivated()) { throw CustomException(ErrorCode.REQUIRE_ACTIVATED_QUEUE_TOKEN) }
-		}
+		queueService.validateQueueToken(queueToken, requiredType)
 
+		TokenContext.setQueueToken(queueToken)
 		return true
 	}
 
