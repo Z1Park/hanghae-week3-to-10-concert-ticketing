@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.queue.QueueFacadeService
 import kr.hhplus.be.server.common.component.UuidV4Generator
+import kr.hhplus.be.server.common.interceptor.QUEUE_TOKEN_NAME
 import kr.hhplus.be.server.common.resolver.QueueToken
 import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
@@ -34,7 +35,7 @@ class QueueController(
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
 				SET_COOKIE,
-				ResponseCookie.from("concert-access-token", issuedQueueToken).build().toString()
+				ResponseCookie.from(QUEUE_TOKEN_NAME, issuedQueueToken).build().toString()
 			)
 			.body(Unit)
 	}

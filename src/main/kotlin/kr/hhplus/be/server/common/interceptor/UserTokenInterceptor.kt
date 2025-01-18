@@ -9,13 +9,15 @@ import kr.hhplus.be.server.domain.user.UserService
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 
+const val USER_TOKEN_NAME = "user-access-token"
+
 @Component
 class UserTokenInterceptor(
 	private val userService: UserService
 ) : HandlerInterceptor {
 
 	override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-		val userToken = request.cookies.find { it.name == "" }?.value
+		val userToken = request.cookies.find { it.name == USER_TOKEN_NAME }?.value
 		require(!userToken.isNullOrBlank()) { throw CustomException(ErrorCode.USER_TOKEN_NOT_FOUND) }
 
 		val userUUID = runCatching {
