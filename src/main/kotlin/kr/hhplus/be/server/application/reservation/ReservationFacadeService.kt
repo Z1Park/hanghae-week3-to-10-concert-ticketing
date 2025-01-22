@@ -1,11 +1,13 @@
 package kr.hhplus.be.server.application.reservation
 
-import kr.hhplus.be.server.common.ClockHolder
+import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
 import kr.hhplus.be.server.domain.payment.PaymentService
 import kr.hhplus.be.server.domain.queue.QueueService
 import kr.hhplus.be.server.domain.reservation.ReservationCommand
+import kr.hhplus.be.server.domain.reservation.ReservationPaymentFlow
+import kr.hhplus.be.server.domain.reservation.ReservationPaymentOrchestrator
 import kr.hhplus.be.server.domain.reservation.ReservationService
 import kr.hhplus.be.server.domain.user.UserService
 import org.slf4j.LoggerFactory
@@ -18,45 +20,60 @@ class ReservationFacadeService(
 	private val concertService: ConcertService,
 	private val paymentService: PaymentService,
 	private val queueService: QueueService,
+	private val orchestrator: ReservationPaymentOrchestrator,
 	private val clockHolder: ClockHolder
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
+	private val log = LoggerFactory.getLogger(javaClass)
 
 	fun reserveConcertSeat(requestCri: ReservationCri.Create): ReservationResult {
 		val user = userService.getByUuid(requestCri.userUUID)
 
-		val seatTotalInfo = concertService.getConcertSeatDetailInformation(requestCri.toConcertCommandTotal())
+		val reservedSeatInfo = concertService.preoccupyConcertSeat(requestCri.toConcertCommandTotal(), clockHolder)
 
-		val createRequest = ReservationCommand.Create(
-			seatTotalInfo.price,
+		val command = ReservationCommand.Create(
+			reservedSeatInfo.price,
 			user.id,
-			seatTotalInfo.concertId,
-			seatTotalInfo.concertScheduleId,
-			seatTotalInfo.seatId
+			requestCri.concertId,
+			requestCri.concertScheduleId,
+			reservedSeatInfo.seatId,
+			reservedSeatInfo.expiredAt
 		)
-		val reservation = reservationService.reserve(createRequest, clockHolder)
+		val reservation = reservationService.reserve(command, clockHolder)
 		return ReservationResult.from(reservation)
 	}
 
 	fun payReservation(paymentCri: PaymentCri.Create) {
 		val user = userService.getByUuid(paymentCri.userUUID)
+		val reservation = reservationService.getReservationForPay(paymentCri.reservationId, clockHolder)
 
-		val reservation = reservationService.getReservationForPay(user.id, paymentCri.reservationId, clockHolder)
+		val reservationExpiredAt = reservation.expiredAt
+		orchestrator.setupInitialRollbackInfo(user.id, reservationExpiredAt)
 
-		val command = PaymentCommand.Create(reservation.price, user.id, reservation.id)
-		val payment = paymentService.pay(command)
+		try {
+			val pointHistory = userService.use(paymentCri.userUUID, reservation.price)
+			orchestrator.successFlow(ReservationPaymentFlow.USE_POINT, pointHistory.id)
 
-		runCatching {
-			userService.use(paymentCri.userUUID, payment.price)
-		}.onSuccess {
-			reservationService.makeSoldOut(reservation)
+			val command = PaymentCommand.Create(reservation.price, user.id, reservation.id)
+			val pay = paymentService.pay(command)
+			orchestrator.successFlow(ReservationPaymentFlow.CREATE_PAYMENT, pay.id)
 
-			queueService.deactivateToken(paymentCri.tokenUUID)
-		}.onFailure { e ->
-			paymentService.rollbackPayment(payment)
+			reservationService.makeSoldOut(reservation.id)
+			orchestrator.successFlow(ReservationPaymentFlow.SOLD_OUT_RESERVATION, reservation.id)
 
-			logger.error("rollback payment by error caused : ", e)
+			val concertSeat = concertService.makeSoldOutConcertSeat(reservation.concertSeatId)
+			orchestrator.successFlow(ReservationPaymentFlow.SOLD_OUT_SEAT, concertSeat.id)
+
+			val deactivatedToken = queueService.deactivateToken(paymentCri.tokenUUID)
+			orchestrator.successFlow(ReservationPaymentFlow.DEACTIVATE_TOKEN, deactivatedToken.id)
+
+		} catch (e: Exception) {
+			log.error("결제 실패 및 롤백 시퀀스 실행 : ", e)
+
+			orchestrator.rollbackAll()
 			throw e
-		}.getOrThrow()
+
+		} finally {
+			orchestrator.clear()
+		}
 	}
 }

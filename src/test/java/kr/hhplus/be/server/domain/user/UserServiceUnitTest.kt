@@ -2,8 +2,9 @@ package kr.hhplus.be.server.domain.user
 
 import io.mockk.every
 import io.mockk.mockkObject
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -48,13 +49,14 @@ class UserServiceUnitTest {
 	}
 
 	@Test
-	fun `uuid를 통해 유저 조회 시, 없는 uuid를 조회하면 EntityNotFoundException이 발생한다`() {
+	fun `uuid를 통해 유저 조회 시, 없는 uuid를 조회하면 CustomException이 발생한다`() {
 		// given
 
 		// when then
 		assertThatThrownBy { sut.getByUuid("fdien129fvb470") }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("User 엔티티를 찾을 수 없습니다. uuid=fdien129fvb470")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -80,15 +82,16 @@ class UserServiceUnitTest {
 	}
 
 	@Test
-	fun `uuid 업데이트 시, 없는 유저의 id를 받으면 EntityNotFoundException이 발생한다`() {
+	fun `uuid 업데이트 시, 없는 유저의 id를 받으면 CustomEntityNotFoundException이 발생한다`() {
 		// given
 		val noneUserId = 11L
 		val userUUID = "myUserUUID"
 
 		// when then
 		assertThatThrownBy { sut.saveUserUUID(noneUserId, userUUID) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("User 엔티티를 찾을 수 없습니다. Id=11")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -124,7 +127,7 @@ class UserServiceUnitTest {
 	}
 
 	@Test
-	fun `충전 요청 시, 없는 userUUID로 요청하면 EntityNotFoundException이 발생한다`() {
+	fun `충전 요청 시, 없는 userUUID로 요청하면 CustomEntityNotFoundException이 발생한다`() {
 		// given
 		val chargeAmount = 2000
 		val userUUID = "myUserUUID"
@@ -134,8 +137,9 @@ class UserServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.charge(userUUID, chargeAmount) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("User 엔티티를 찾을 수 없습니다. uuid=myUserUUID")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -171,7 +175,7 @@ class UserServiceUnitTest {
 	}
 
 	@Test
-	fun `사용 요청 시, 없는 userUUID로 요청하면 EntityNotFoundException이 발생한다`() {
+	fun `사용 요청 시, 없는 userUUID로 요청하면 CustomException이 발생한다`() {
 		// given
 		val useAmount = 2000
 		val userUUID = "myUserUUID"
@@ -181,7 +185,8 @@ class UserServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.use(userUUID, useAmount) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("User 엔티티를 찾을 수 없습니다. uuid=myUserUUID")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 }

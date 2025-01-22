@@ -46,6 +46,12 @@ class Queue(
 		}
 	}
 
+	fun rollbackDeactivation() {
+		if (activateStatus == DEACTIVATED) {
+			activateStatus = ACTIVATED
+		}
+	}
+
 	fun calculateWaitingOrder(lastActivatedQueue: Queue?): Long {
 		val waitingOrder = this.id - (lastActivatedQueue?.id ?: 0) - 1
 		return max(waitingOrder, 0L)

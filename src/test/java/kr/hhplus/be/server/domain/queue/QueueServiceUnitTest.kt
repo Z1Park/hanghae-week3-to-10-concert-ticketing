@@ -2,8 +2,9 @@ package kr.hhplus.be.server.domain.queue
 
 import io.mockk.every
 import io.mockk.mockkObject
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
-import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -27,7 +28,7 @@ class QueueServiceUnitTest {
 	private lateinit var queueRepository: QueueRepository
 
 	@Test
-	fun `tokenUUID를 통해 토큰 조회 시, 없는 토큰이라면 EntityNotFoundException이 발생한다`() {
+	fun `tokenUUID를 통해 토큰 조회 시, 없는 토큰이라면 CustomException이 발생한다`() {
 		// given
 		val tokenUUID = "myTokenUUID"
 
@@ -35,8 +36,9 @@ class QueueServiceUnitTest {
 
 		// when then
 		assertThatThrownBy { sut.getByUuid(tokenUUID) }
-			.isInstanceOf(EntityNotFoundException::class.java)
-			.hasMessage("Queue 엔티티를 찾을 수 없습니다. uuid=myTokenUUID")
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 
 	@Test
@@ -232,8 +234,42 @@ class QueueServiceUnitTest {
 		sut.deactivateToken(tokenUUID)
 
 		//then
-		verify(queueRepository).save(token)
-
 		assertThat(token.activateStatus).isEqualTo(QueueActiveStatus.DEACTIVATED)
+
+		verify(queueRepository).save(token)
+	}
+
+	@Test
+	fun `토큰 비활성화 롤백 시, 토큰을 다시 활성화 상태로 만든다`() {
+		// given
+		val tokenId = 13L
+		val token = Instancio.of(Queue::class.java)
+			.set(field(Queue::id), tokenId)
+			.set(field(Queue::activateStatus), QueueActiveStatus.DEACTIVATED)
+			.create()
+
+		`when`(queueRepository.findById(tokenId))
+			.then { token }
+
+		// when
+		sut.rollbackDeactivateToken(tokenId)
+
+		//then
+		assertThat(token.activateStatus).isEqualTo(QueueActiveStatus.ACTIVATED)
+	}
+
+	@Test
+	fun `토큰 비활성화 롤백 시, 없는 tokenId를 통해 요청하면 CustomException이 발생한다`() {
+		// given
+		val tokenId = 13L
+
+		`when`(queueRepository.findById(tokenId))
+			.then { null }
+
+		// when then
+		assertThatThrownBy { sut.rollbackDeactivateToken(tokenId) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
 }

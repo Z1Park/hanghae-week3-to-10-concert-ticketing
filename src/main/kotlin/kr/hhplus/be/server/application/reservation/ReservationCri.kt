@@ -10,7 +10,7 @@ class ReservationCri {
 		val concertScheduleId: Long,
 		val concertSeatId: Long,
 	) {
-		fun toConcertCommandTotal(): ConcertCommand.Total =
-			ConcertCommand.Total(concertId, concertScheduleId, concertSeatId)
+		fun toConcertCommandTotal(): ConcertCommand.Reserve =
+			ConcertCommand.Reserve(concertId, concertScheduleId, concertSeatId)
 	}
 }

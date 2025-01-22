@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.queue
 
-import kr.hhplus.be.server.common.ClockHolder
-import kr.hhplus.be.server.common.UuidGenerator
+import kr.hhplus.be.server.common.component.ClockHolder
+import kr.hhplus.be.server.common.component.UuidGenerator
 import kr.hhplus.be.server.domain.queue.QueueService
 import kr.hhplus.be.server.domain.queue.QueueWaitingInfo
 import org.springframework.stereotype.Service

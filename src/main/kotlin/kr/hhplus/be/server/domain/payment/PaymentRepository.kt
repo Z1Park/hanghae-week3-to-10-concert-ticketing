@@ -7,4 +7,6 @@ interface PaymentRepository {
 	fun save(payment: Payment): Payment
 
 	fun delete(payment: Payment)
+
+	fun findById(paymentId: Long): Payment?
 }

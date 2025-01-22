@@ -2,6 +2,7 @@ package kr.hhplus.be.server.infrastructure.reservation
 
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -9,12 +10,16 @@ class ReservationRepositoryImpl(
 	private val reservationJpaRepository: ReservationJpaRepository
 ) : ReservationRepository {
 
-	override fun findByUserIdAndReservationId(userId: Long, reservationId: Long): Reservation? =
-		reservationJpaRepository.findByIdAndAndUserId(reservationId, userId)
+	override fun findById(reservationId: Long): Reservation? =
+		reservationJpaRepository.findByIdOrNull(reservationId)
 
-	override fun findByScheduleAndSeatForUpdate(concertScheduleId: Long, concertSeatId: Long): Reservation? =
-		reservationJpaRepository.findForUpdateByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)
+	override fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation? =
+		reservationJpaRepository.findByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)
 
 	override fun save(reservation: Reservation): Reservation =
 		reservationJpaRepository.save(reservation)
+
+	override fun delete(reservation: Reservation) {
+		reservationJpaRepository.delete(reservation)
+	}
 }

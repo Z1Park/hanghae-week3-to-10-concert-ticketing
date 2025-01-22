@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.user
 
 import kr.hhplus.be.server.TestContainerCleaner
-import kr.hhplus.be.server.common.UuidGenerator
+import kr.hhplus.be.server.common.component.UuidGenerator
 import kr.hhplus.be.server.domain.user.User
 import kr.hhplus.be.server.infrastructure.user.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository

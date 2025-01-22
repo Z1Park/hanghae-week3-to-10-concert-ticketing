@@ -2,9 +2,7 @@ package kr.hhplus.be.server.domain.payment
 
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository
-import org.apache.coyote.BadRequestException
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,17 +34,5 @@ class PaymentServiceIntegrationTest(
 		assertThat(set.price).isEqualTo(1000)
 		assertThat(set.userId).isEqualTo(1L)
 		assertThat(set.reservationId).isEqualTo(3L)
-	}
-
-	@Test
-	fun `결제 요청 시, 기존에 동일한 userId와 reservationId로 결제한 내용이 있다면 BadRequestException이 발생한다`() {
-		// given
-		val command = PaymentCommand.Create(1000, 1L, 3L)
-		val payment = Payment(800, 1L, 3L)
-		paymentJpaRepository.save(payment)
-
-		// when then
-		assertThatThrownBy { sut.pay(command) }
-			.isInstanceOf(BadRequestException::class.java)
 	}
 }

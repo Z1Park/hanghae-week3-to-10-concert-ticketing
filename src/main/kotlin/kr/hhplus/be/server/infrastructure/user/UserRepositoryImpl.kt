@@ -17,8 +17,13 @@ class UserRepositoryImpl(
 	override fun findByUuid(uuid: String): User? = userJpaRepository.findByUserUUID(uuid)
 
 	override fun findByUuidForUpdate(uuid: String): User? = userJpaRepository.findForUpdateByUserUUID(uuid)
+	override fun findPointHistoryById(pointHistoryId: Long): PointHistory? =
+		pointHistoryJpaRepository.findByIdOrNull(pointHistoryId)
 
 	override fun save(user: User): User = userJpaRepository.save(user)
 
 	override fun save(pointHistory: PointHistory): PointHistory = pointHistoryJpaRepository.save(pointHistory)
+	override fun delete(pointHistory: PointHistory) {
+		pointHistoryJpaRepository.delete(pointHistory)
+	}
 }

@@ -84,7 +84,6 @@ class UserServiceIntegrationTest(
 		val actual = sut.use(userUUID, useAmount)
 
 		//then
-		assertThat(actual.balance).isEqualTo(550)
 
 		val set1 = userJpaRepository.findByIdOrNull(user.id)!!
 		assertThat(set1.balance).isEqualTo(550)
@@ -93,5 +92,8 @@ class UserServiceIntegrationTest(
 		assertThat(set2).hasSize(2)
 			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 1400 }
 			.anyMatch { it.type == PointHistoryType.USE && it.amount == 850 }
+
+		val set3 = pointHistoryJpaRepository.findByIdOrNull(actual.id)!!
+		assertThat(actual.id).isEqualTo(set3.id)
 	}
 }

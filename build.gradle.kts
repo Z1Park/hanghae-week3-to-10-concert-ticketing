@@ -53,7 +53,7 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// DOCS
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -63,6 +63,7 @@ dependencies {
 	testImplementation("org.instancio:instancio-junit:5.2.1")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("io.mockk:mockk:1.13.8")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
 
 tasks.withType<Test> {

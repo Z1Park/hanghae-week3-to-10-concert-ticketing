@@ -52,6 +52,7 @@ CREATE TABLE `concert_seat` (
     `concert_schedule_id` BIGINT NOT NULL,
     `seat_number` INT NOT NULL,
     `price` INT NOT NULL,
+    `reserved_until` TIMESTAMP(6),
     `created_at` TIMESTAMP(6) NOT NULL,
     `updated_at` TIMESTAMP(6) NOT NULL,
     INDEX idx_concert_schedule_id (concert_schedule_id)

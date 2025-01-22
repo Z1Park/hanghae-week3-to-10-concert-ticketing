@@ -1,10 +1,11 @@
 package kr.hhplus.be.server.domain.queue
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.common.ClockHolder
+import kr.hhplus.be.server.common.component.ClockHolder
+import kr.hhplus.be.server.common.exception.CustomException
+import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.queue.QueueActiveStatus.ACTIVATED
 import kr.hhplus.be.server.domain.queue.QueueActiveStatus.WAITING
-import kr.hhplus.be.server.infrastructure.exception.EntityNotFoundException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import kotlin.math.ceil
@@ -19,7 +20,7 @@ class QueueService(
 	}
 
 	fun getByUuid(tokenUUID: String): Queue = queueRepository.findByUUID(tokenUUID)
-		?: throw EntityNotFoundException.fromParam("Queue", "uuid", tokenUUID)
+		?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "tokenUUID=$tokenUUID")
 
 	fun findLastActivatedQueue(): Queue? {
 		val pageable = PageRequest.of(0, 1)
@@ -62,11 +63,20 @@ class QueueService(
 	}
 
 	@Transactional
-	fun deactivateToken(tokenUUID: String) {
+	fun deactivateToken(tokenUUID: String): Queue {
 		val token = queueRepository.findByUUID(tokenUUID)
-			?: throw EntityNotFoundException.fromParam("Queue", "uuid", tokenUUID)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "tokenUUID=$tokenUUID")
 
 		token.deactivate()
+		return queueRepository.save(token)
+	}
+
+	@Transactional
+	fun rollbackDeactivateToken(tokenId: Long) {
+		val token = queueRepository.findById(tokenId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "tokenId=$tokenId")
+
+		token.rollbackDeactivation()
 		queueRepository.save(token)
 	}
 }

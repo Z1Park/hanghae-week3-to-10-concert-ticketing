@@ -3,9 +3,9 @@ package kr.hhplus.be.server.interfaces.queue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.queue.QueueFacadeService
-import kr.hhplus.be.server.common.UuidV4Generator
-import kr.hhplus.be.server.interfaces.resolver.QueueToken
-import kr.hhplus.be.server.interfaces.resolver.UserToken
+import kr.hhplus.be.server.common.component.UuidV4Generator
+import kr.hhplus.be.server.common.resolver.QueueToken
+import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -46,7 +46,7 @@ class QueueController(
 	@GetMapping("")
 	fun getWaitingInformation(
 		@UserToken userToken: String,
-		@QueueToken queueToken: String
+		@QueueToken(QueueToken.RequiredType.WAITING) queueToken: String
 	): WaitingInformationResponse {
 		val waitingInfo = queueFacadeService.getWaitingInfo(queueToken)
 		return WaitingInformationResponse.from(waitingInfo)

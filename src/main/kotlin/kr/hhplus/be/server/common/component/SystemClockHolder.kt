@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common
+package kr.hhplus.be.server.common.component
 
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
