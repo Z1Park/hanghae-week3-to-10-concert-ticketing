@@ -189,4 +189,57 @@ class UserServiceUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
+
+	@Test
+	fun `사용 요청 롤백 시, 유저와 포인트 히스토리를 조회하고 유저의 잔액을 사용만큼 증가시킨다`() {
+		// given
+		val userId = 31L
+		val pointHistoryId = 48L
+		val user = Instancio.of(User::class.java)
+			.set(field(User::balance), 1300)
+			.create()
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::type), PointHistoryType.USE)
+			.set(field(PointHistory::amount), 700)
+			.create()
+
+		`when`(userRepository.findById(userId))
+			.then { user }
+		`when`(userRepository.findPointHistoryById(pointHistoryId))
+			.then { pointHistory }
+
+		// when
+		sut.rollbackUsePointHistory(userId, pointHistoryId)
+
+		//then
+		assertThat(user.balance).isEqualTo(2000)
+		assertThat(user.pointHistories).doesNotContain(pointHistory)
+
+		verify(userRepository).delete(pointHistory)
+	}
+
+	@Test
+	fun `사용 요청 롤백 시, 사용 기록의 타입이 USE가 아니라면 CustomException이 발생한다`() {
+		// given
+		val userId = 33L
+		val pointHistoryId = 93L
+		val user = Instancio.of(User::class.java)
+			.set(field(User::balance), 1300)
+			.create()
+		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::type), PointHistoryType.CHARGE)
+			.set(field(PointHistory::amount), 700)
+			.create()
+
+		`when`(userRepository.findById(userId))
+			.then { user }
+		`when`(userRepository.findPointHistoryById(pointHistoryId))
+			.then { pointHistory }
+
+		// when then
+		assertThatThrownBy { sut.rollbackUsePointHistory(userId, pointHistoryId) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ROLLBACK_FAIL)
+	}
 }
