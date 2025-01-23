@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
+import kr.hhplus.be.server.common.redis.DistributedLock
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -13,6 +14,9 @@ const val RESERVATION_TIME_MINUTES = 5L
 class ConcertService(
 	private val concertRepository: ConcertRepository
 ) {
+	companion object {
+		private const val SEAT_RESERVATION_KEY = "seatReservation:"
+	}
 
 	fun getConcert(): List<ConcertInfo.ConcertDto> {
 		val concerts = concertRepository.findAllConcert(false)
@@ -36,6 +40,7 @@ class ConcertService(
 		return concertSeats.map { ConcertInfo.Seat.of(concertId, it) }
 	}
 
+	@DistributedLock(prefix = SEAT_RESERVATION_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun preoccupyConcertSeat(command: ConcertCommand.Reserve, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)
