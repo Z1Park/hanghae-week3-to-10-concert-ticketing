@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
+import kr.hhplus.be.server.common.redis.DistributedLock
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -11,18 +12,22 @@ import java.time.LocalDateTime
 class ReservationService(
 	private val reservationRepository: ReservationRepository
 ) {
+	companion object {
+		private const val RESERVATION_KEY = "seatReservation:"
+	}
 
 	fun getReservationForPay(reservationId: Long, clockHolder: ClockHolder): Reservation {
 		val reservation = reservationRepository.findById(reservationId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "reservationId=$reservationId")
 
-		require(!reservation.isExpired(clockHolder.getCurrentTime())) {
+		if (reservation.isExpired(clockHolder.getCurrentTime())) {
 			throw CustomException(ErrorCode.EXPIRED_RESERVATION)
 		}
 
 		return reservation
 	}
 
+	@DistributedLock(prefix = RESERVATION_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
 		val seatReservation = reservationRepository.findByScheduleIdAndSeatId(command.concertScheduleId, command.concertSeatId)
