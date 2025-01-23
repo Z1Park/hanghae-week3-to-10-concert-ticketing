@@ -54,16 +54,14 @@ class UserServiceIntegrationTest(
 		pointHistoryJpaRepository.save(pointHistory)
 
 		// when
-		val actual = sut.charge(userUUID, chargeAmount)
+		sut.charge(userUUID, chargeAmount)
 
 		//then
+		val actual = userJpaRepository.findByIdOrNull(user.id)!!
 		assertThat(actual.balance).isEqualTo(1250)
 
-		val set1 = userJpaRepository.findByIdOrNull(user.id)!!
-		assertThat(set1.balance).isEqualTo(1250)
-
-		val set2 = pointHistoryJpaRepository.findAll().filter { it.userId == user.id }
-		assertThat(set2).hasSize(2)
+		val set = pointHistoryJpaRepository.findAll().filter { it.userId == user.id }
+		assertThat(set).hasSize(2)
 			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 400 }
 			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 850 }
 	}
@@ -81,19 +79,16 @@ class UserServiceIntegrationTest(
 		pointHistoryJpaRepository.save(pointHistory)
 
 		// when
-		val actual = sut.use(userUUID, useAmount)
+		sut.use(userUUID, useAmount)
 
 		//then
 
-		val set1 = userJpaRepository.findByIdOrNull(user.id)!!
-		assertThat(set1.balance).isEqualTo(550)
+		val actual = userJpaRepository.findByIdOrNull(user.id)!!
+		assertThat(actual.balance).isEqualTo(550)
 
-		val set2 = pointHistoryJpaRepository.findAll().filter { it.userId == user.id }
-		assertThat(set2).hasSize(2)
+		val set = pointHistoryJpaRepository.findAll().filter { it.userId == user.id }
+		assertThat(set).hasSize(2)
 			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 1400 }
 			.anyMatch { it.type == PointHistoryType.USE && it.amount == 850 }
-
-		val set3 = pointHistoryJpaRepository.findByIdOrNull(actual.id)!!
-		assertThat(actual.id).isEqualTo(set3.id)
 	}
 }
