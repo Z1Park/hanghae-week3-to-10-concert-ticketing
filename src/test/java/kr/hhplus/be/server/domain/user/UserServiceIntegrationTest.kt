@@ -91,4 +91,24 @@ class UserServiceIntegrationTest(
 			.anyMatch { it.type == PointHistoryType.CHARGE && it.amount == 1400 }
 			.anyMatch { it.type == PointHistoryType.USE && it.amount == 850 }
 	}
+
+	@Test
+	fun `사용 요청 롤백 시, 유저와 포인트 히스토리를 조회 후 잔액을 증가시키고 해당 포인트 히스토리를 삭제한다`() {
+		// given
+		val user = User("김항해", "muUserUUID", 900)
+		userJpaRepository.save(user)
+
+		val usePointHistory = PointHistory(PointHistoryType.USE, 1100, user.id)
+		pointHistoryJpaRepository.save(usePointHistory)
+
+		// when
+		sut.rollbackUsePointHistory(user.id, usePointHistory.id)
+
+		//then
+		val actualUser = userJpaRepository.findByIdOrNull(user.id)!!
+		assertThat(actualUser.balance).isEqualTo(2000)
+
+		val actualPointHistory = pointHistoryJpaRepository.findByIdOrNull(usePointHistory.id)
+		assertThat(actualPointHistory).isNull()
+	}
 }
