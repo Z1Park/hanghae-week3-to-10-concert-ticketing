@@ -6,8 +6,6 @@ interface UserRepository {
 
 	fun findByUuid(uuid: String): User?
 
-	fun findByUuidForUpdate(uuid: String): User?
-
 	fun findPointHistoryById(pointHistoryId: Long): PointHistory?
 
 	fun save(user: User): User

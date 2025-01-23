@@ -15,7 +15,7 @@ class ConcertService(
 	private val concertRepository: ConcertRepository
 ) {
 	companion object {
-		private const val SEAT_RESERVATION_KEY = "seatReservation:"
+		private const val SEAT_PREEMPTION_KEY = "seatPreemption:"
 	}
 
 	fun getConcert(): List<ConcertInfo.ConcertDto> {
@@ -40,7 +40,7 @@ class ConcertService(
 		return concertSeats.map { ConcertInfo.Seat.of(concertId, it) }
 	}
 
-	@DistributedLock(prefix = SEAT_RESERVATION_KEY, key = "#command.concertSeatId")
+	@DistributedLock(prefix = SEAT_PREEMPTION_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun preoccupyConcertSeat(command: ConcertCommand.Reserve, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)

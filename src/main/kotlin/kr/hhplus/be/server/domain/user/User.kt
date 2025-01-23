@@ -18,7 +18,10 @@ class User(
 	var balance: Int,
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "userId")
-	val pointHistories: MutableList<PointHistory> = mutableListOf()
+	val pointHistories: MutableList<PointHistory> = mutableListOf(),
+
+	@Version
+	var version: Long = 0L
 ) : BaseEntity() {
 
 	companion object {

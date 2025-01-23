@@ -110,7 +110,7 @@ class UserServiceUnitTest {
 			.set(field(PointHistory::amount), chargeAmount)
 			.create()
 
-		`when`(userRepository.findByUuidForUpdate(userUUID))
+		`when`(userRepository.findByUuid(userUUID))
 			.then { user }
 
 		mockkObject(PointHistory.Companion)
@@ -132,7 +132,7 @@ class UserServiceUnitTest {
 		val chargeAmount = 2000
 		val userUUID = "myUserUUID"
 
-		`when`(userRepository.findByUuidForUpdate(userUUID))
+		`when`(userRepository.findByUuid(userUUID))
 			.then { null }
 
 		// when then
@@ -158,7 +158,7 @@ class UserServiceUnitTest {
 			.set(field(PointHistory::amount), useAmount)
 			.create()
 
-		`when`(userRepository.findByUuidForUpdate(userUUID))
+		`when`(userRepository.findByUuid(userUUID))
 			.then { user }
 
 		mockkObject(PointHistory.Companion)
@@ -180,7 +180,7 @@ class UserServiceUnitTest {
 		val useAmount = 2000
 		val userUUID = "myUserUUID"
 
-		`when`(userRepository.findByUuidForUpdate(userUUID))
+		`when`(userRepository.findByUuid(userUUID))
 			.then { null }
 
 		// when then

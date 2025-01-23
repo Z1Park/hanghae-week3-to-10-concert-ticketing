@@ -16,7 +16,6 @@ class UserRepositoryImpl(
 
 	override fun findByUuid(uuid: String): User? = userJpaRepository.findByUserUUID(uuid)
 
-	override fun findByUuidForUpdate(uuid: String): User? = userJpaRepository.findForUpdateByUserUUID(uuid)
 	override fun findPointHistoryById(pointHistoryId: Long): PointHistory? =
 		pointHistoryJpaRepository.findByIdOrNull(pointHistoryId)
 

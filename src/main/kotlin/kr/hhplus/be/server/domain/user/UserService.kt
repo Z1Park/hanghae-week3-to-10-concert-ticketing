@@ -23,13 +23,14 @@ class UserService(
 	}
 
 	@Transactional
-	fun charge(userUUID: String, chargeAmount: Int): User {
-		val user = userRepository.findByUuidForUpdate(userUUID)
+	fun charge(userUUID: String, chargeAmount: Int): PointHistory {
+		val user = userRepository.findByUuid(userUUID)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val chargePointHistory = user.charge(chargeAmount)
-		userRepository.save(chargePointHistory)
-		return userRepository.save(user)
+
+		userRepository.save(user)
+		return userRepository.save(chargePointHistory)
 	}
 
 	@Transactional
@@ -38,6 +39,7 @@ class UserService(
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userUUID=$userUUID")
 
 		val usePointHistory = user.use(useAmount)
+
 		userRepository.save(user)
 		return userRepository.save(usePointHistory)
 	}

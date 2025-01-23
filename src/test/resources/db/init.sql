@@ -3,6 +3,7 @@ CREATE TABLE `user` (
   `username` VARCHAR(255) NOT NULL,
   `user_uuid` VARCHAR(255) NOT NULL UNIQUE,
   `balance` BIGINT NOT NULL,
+  `version` BIGINT NOT NULL,
   `created_at` TIMESTAMP(6) NOT NULL,
   `updated_at` TIMESTAMP(6) NOT NULL
 );
