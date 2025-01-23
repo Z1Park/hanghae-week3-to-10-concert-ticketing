@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.reservation
 
 import kr.hhplus.be.server.TestContainerCleaner
+import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.queue.Queue
 import kr.hhplus.be.server.domain.queue.QueueActiveStatus
@@ -19,10 +20,15 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 @SpringBootTest
+@Import(ReservationFacadeIntegrationTestConfig::class)
 class ReservationFacadeServiceIntegrationTest(
 	@Autowired private val testContainerCleaner: TestContainerCleaner,
 	@Autowired private val sut: ReservationFacadeService,
@@ -42,16 +48,17 @@ class ReservationFacadeServiceIntegrationTest(
 	@Test
 	fun `결제 요청 시, 유저 포인트 차감, 결제 생성, 예약-좌석 매진, 토큰 비활성화 로직이 수행된다`() {
 		// given
-		val testTime = LocalDateTime.of(2025, 1, 17, 12, 6, 10)
+		val testTime = LocalDateTime.of(2025, 1, 17, 12, 59, 59) // config의 현재시간
+		val expiredAt = testTime.plusNanos(1000)
 
 		val userUUID = "myUserUUID"
 		val user = User("김항해", userUUID, 20000)
 		userJpaRepository.save(user)
 
-		val seat = ConcertSeat(99, 15000, 2L, testTime.plusMinutes(5))
+		val seat = ConcertSeat(99, 15000, 2L, expiredAt)
 		concertSeatJpaRepository.save(seat)
 
-		val reservation = Reservation(testTime, 15000, user.id, 1L, 2L, seat.id)
+		val reservation = Reservation(expiredAt, 15000, user.id, 1L, 2L, seat.id)
 		reservationJpaRepository.save(reservation)
 
 		val tokenUUID = "myTokenUUID"
@@ -123,5 +130,14 @@ class ReservationFacadeServiceIntegrationTest(
 
 		val actualSeat = concertSeatJpaRepository.findByIdOrNull(seat.id)!!
 		assertThat(actualSeat.reservedUntil).isEqualTo(expiredAt)
+	}
+}
+
+@TestConfiguration
+class ReservationFacadeIntegrationTestConfig {
+	@Bean
+	@Primary
+	fun clockHolder(): ClockHolder = ClockHolder {
+		LocalDateTime.of(2025, 1, 17, 12, 59, 59)
 	}
 }

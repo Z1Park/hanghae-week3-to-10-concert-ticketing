@@ -37,9 +37,11 @@ class ReservationPaymentOrchestratorUnitTest {
 	@Test
 	fun `오케스트레이션 동작 테스트 - USE_POINT`() {
 		// given
-		val pointHistoryId = 11L
 		val userId = 123L
-		sut.setupInitialRollbackInfo(userId, null)
+		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
+		val pointHistoryId = 11L
 		sut.successFlow(ReservationPaymentFlow.USE_POINT, pointHistoryId)
 
 		// when
@@ -52,6 +54,10 @@ class ReservationPaymentOrchestratorUnitTest {
 	@Test
 	fun `오케스트레이션 동작 테스트 - CREATE_PAYMENT`() {
 		// given
+		val userId = 123L
+		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
 		val paymentId = 123L
 		sut.successFlow(ReservationPaymentFlow.CREATE_PAYMENT, paymentId)
 
@@ -65,9 +71,11 @@ class ReservationPaymentOrchestratorUnitTest {
 	@Test
 	fun `오케스트레이션 동작 테스트 - SOLD_OUT_RESERVATION`() {
 		// given
+		val userId = 123L
 		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
-		val reservationId = 123L
-		sut.setupInitialRollbackInfo(1L, testTime)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
+		val reservationId = 1L
 		sut.successFlow(ReservationPaymentFlow.SOLD_OUT_RESERVATION, reservationId)
 
 		// when
@@ -80,9 +88,11 @@ class ReservationPaymentOrchestratorUnitTest {
 	@Test
 	fun `오케스트레이션 동작 테스트 - SOLD_OUT_SEAT`() {
 		// given
+		val userId = 123L
 		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
 		val seatId = 123L
-		sut.setupInitialRollbackInfo(1L, testTime)
 		sut.successFlow(ReservationPaymentFlow.SOLD_OUT_SEAT, seatId)
 
 		// when
@@ -95,6 +105,10 @@ class ReservationPaymentOrchestratorUnitTest {
 	@Test
 	fun `오케스트레이션 동작 테스트 - DEACTIVATE_TOKEN`() {
 		// given
+		val userId = 123L
+		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
 		val tokenId = 11L
 		sut.successFlow(ReservationPaymentFlow.DEACTIVATE_TOKEN, tokenId)
 
@@ -106,14 +120,16 @@ class ReservationPaymentOrchestratorUnitTest {
 	}
 
 	@Test
-	fun `clear 호출 시, 내부 필드가 null이 되어 NPE가 발생한다`() {
+	fun `clear 호출 후에 내부 필드가 null이 되어 NPE가 발생한다`() {
 		// given
+		val userId = 123L
+		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
+		sut.setupInitialRollbackInfo(userId, testTime)
+
 		val expiredAt = LocalDateTime.of(2025, 1, 16, 11, 45, 10)
 		sut.clear()
 
 		// when then
-		assertThatThrownBy { sut.setupInitialRollbackInfo(1L, expiredAt) }
-			.isInstanceOf(NullPointerException::class.java)
 		assertThatThrownBy { sut.successFlow(ReservationPaymentFlow.USE_POINT, 1L) }
 			.isInstanceOf(NullPointerException::class.java)
 	}

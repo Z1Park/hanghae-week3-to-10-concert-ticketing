@@ -188,7 +188,9 @@ class ReservationServiceUnitTest {
 		// given
 		val reservationId = 74L
 		val testTime = LocalDateTime.of(2025, 1, 16, 9, 36, 5)
-		val reservation = Instancio.of(Reservation::class.java).create()
+		val reservation = Instancio.of(Reservation::class.java)
+			.set(field(Reservation::expiredAt), null)
+			.create()
 
 		`when`(reservationRepository.findById(reservationId))
 			.then { reservation }

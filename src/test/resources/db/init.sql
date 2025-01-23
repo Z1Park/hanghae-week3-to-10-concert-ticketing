@@ -68,7 +68,8 @@ CREATE TABLE `reservation` (
     `expired_at` TIMESTAMP(6),
     `created_at` TIMESTAMP(6) NOT NULL,
     `updated_at` TIMESTAMP(6) NOT NULL,
-    INDEX cmp_idx_concert_schedule_seat_id (concert_schedule_id, concert_seat_id)
+    INDEX idx_user_id (user_id),
+    INDEX idx_concert_seat_id (concert_seat_id)
 );
 
 CREATE TABLE `payment` (
