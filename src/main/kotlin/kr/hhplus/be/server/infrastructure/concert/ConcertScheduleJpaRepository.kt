@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.infrastructure.concert
 
-import kr.hhplus.be.server.domain.concert.ConcertSchedule
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertScheduleEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface ConcertScheduleJpaRepository : JpaRepository<ConcertSchedule, Long> {
+interface ConcertScheduleJpaRepository : JpaRepository<ConcertScheduleEntity, Long> {
 
-	fun findAllByConcertId(concertId: Long): List<ConcertSchedule>
+	fun findAllByConcertId(concertId: Long): List<ConcertScheduleEntity>
 }

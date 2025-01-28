@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.common.resolver
 
 import kr.hhplus.be.server.common.component.TokenContext
-import kr.hhplus.be.server.domain.queue.Queue
+import kr.hhplus.be.server.domain.queue.model.Queue
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory

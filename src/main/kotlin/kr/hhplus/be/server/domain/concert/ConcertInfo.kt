@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.domain.concert
 
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
 import java.time.LocalDateTime
 
 class ConcertInfo {
@@ -10,7 +13,7 @@ class ConcertInfo {
 		val provider: String
 	) {
 		companion object {
-			fun from(concert: kr.hhplus.be.server.domain.concert.Concert): ConcertDto =
+			fun from(concert: Concert): ConcertDto =
 				ConcertDto(concert.id, concert.title, concert.provider)
 		}
 	}

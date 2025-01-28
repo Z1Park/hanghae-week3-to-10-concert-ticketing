@@ -3,6 +3,8 @@ package kr.hhplus.be.server.domain.user
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
+import kr.hhplus.be.server.domain.user.model.PointHistory
+import kr.hhplus.be.server.domain.user.model.User
 import org.springframework.stereotype.Service
 
 @Service
@@ -30,7 +32,7 @@ class UserService(
 		val chargePointHistory = user.charge(chargeAmount)
 
 		userRepository.save(user)
-		return userRepository.save(chargePointHistory)
+		return chargePointHistory
 	}
 
 	@Transactional
@@ -41,17 +43,15 @@ class UserService(
 		val usePointHistory = user.use(useAmount)
 
 		userRepository.save(user)
-		return userRepository.save(usePointHistory)
+		return usePointHistory
 	}
 
 	@Transactional
 	fun rollbackUsePointHistory(userId: Long, pointHistoryId: Long) {
 		val user = userRepository.findById(userId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "userId=$userId")
-		val pointHistory = userRepository.findPointHistoryById(pointHistoryId)
-			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "pointHistoryId=$pointHistoryId")
 
-		user.rollbackUse(pointHistory)
-		userRepository.delete(pointHistory)
+		user.rollbackUse(pointHistoryId)
+		userRepository.save(user)
 	}
 }

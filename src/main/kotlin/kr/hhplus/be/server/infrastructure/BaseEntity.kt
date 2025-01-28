@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain
+package kr.hhplus.be.server.infrastructure
 
 import jakarta.persistence.*
 import org.hibernate.proxy.HibernateProxy
@@ -31,7 +31,7 @@ abstract class BaseEntity(
 
 		if (thisEffectiveClass != oEffectiveClass) return false
 
-		other as BaseEntity
+		if (other !is BaseEntity) return false
 		return id == other.id
 	}
 

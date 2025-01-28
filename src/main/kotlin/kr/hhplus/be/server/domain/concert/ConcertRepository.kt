@@ -1,5 +1,9 @@
 package kr.hhplus.be.server.domain.concert
 
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
+
 interface ConcertRepository {
 
 	fun findAllConcert(finished: Boolean): List<Concert>

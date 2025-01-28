@@ -2,18 +2,18 @@ package kr.hhplus.be.server.application.reservation
 
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.common.component.ClockHolder
-import kr.hhplus.be.server.domain.concert.ConcertSeat
-import kr.hhplus.be.server.domain.queue.Queue
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus
-import kr.hhplus.be.server.domain.reservation.Reservation
-import kr.hhplus.be.server.domain.user.PointHistoryType
-import kr.hhplus.be.server.domain.user.User
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
+import kr.hhplus.be.server.domain.user.model.PointHistoryType
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertSeatEntity
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository
 import kr.hhplus.be.server.infrastructure.queue.QueueJpaRepository
+import kr.hhplus.be.server.infrastructure.queue.entity.QueueJpaEntity
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository
+import kr.hhplus.be.server.infrastructure.reservation.entity.ReservationEntity
 import kr.hhplus.be.server.infrastructure.user.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -52,17 +52,17 @@ class ReservationFacadeServiceIntegrationTest(
 		val expiredAt = testTime.plusNanos(1000)
 
 		val userUUID = "myUserUUID"
-		val user = User("김항해", userUUID, 20000)
+		val user = UserEntity("김항해", userUUID, 20000)
 		userJpaRepository.save(user)
 
-		val seat = ConcertSeat(99, 15000, 2L, expiredAt)
+		val seat = ConcertSeatEntity(99, 15000, 2L, expiredAt)
 		concertSeatJpaRepository.save(seat)
 
-		val reservation = Reservation(expiredAt, 15000, user.id, 1L, 2L, seat.id)
+		val reservation = ReservationEntity(expiredAt, 15000, user.id, 1L, 2L, seat.id)
 		reservationJpaRepository.save(reservation)
 
 		val tokenUUID = "myTokenUUID"
-		val token = Queue(userUUID, tokenUUID, QueueActiveStatus.ACTIVATED, testTime.plusDays(1))
+		val token = QueueJpaEntity(userUUID, tokenUUID, QueueActiveStatus.ACTIVATED, testTime.plusDays(1))
 		queueJpaRepository.save(token)
 
 		val cri = PaymentCri.Create(userUUID, tokenUUID, reservation.id)
@@ -98,13 +98,13 @@ class ReservationFacadeServiceIntegrationTest(
 		val expiredAt = LocalDateTime.of(2025, 1, 17, 12, 6, 10)
 
 		val userUUID = "myUserUUID"
-		val user = User("김항해", userUUID, 20000)
+		val user = UserEntity("김항해", userUUID, 20000)
 		userJpaRepository.save(user)
 
-		val seat = ConcertSeat(99, 15000, 2L, expiredAt)
+		val seat = ConcertSeatEntity(99, 15000, 2L, expiredAt)
 		concertSeatJpaRepository.save(seat)
 
-		val reservation = Reservation(expiredAt, 15000, user.id, 1L, 2L, seat.id)
+		val reservation = ReservationEntity(expiredAt, 15000, user.id, 1L, 2L, seat.id)
 		reservationJpaRepository.save(reservation)
 
 		val tokenUUID = "myTokenUUID"

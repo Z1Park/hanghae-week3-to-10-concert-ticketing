@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.common.resolver
 
 import kr.hhplus.be.server.common.component.TokenContext
-import kr.hhplus.be.server.domain.user.User
+import kr.hhplus.be.server.domain.user.model.User
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory

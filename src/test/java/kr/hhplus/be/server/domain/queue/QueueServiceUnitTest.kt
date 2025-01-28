@@ -5,13 +5,14 @@ import io.mockk.mockkObject
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.queue.model.Queue
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -160,7 +161,7 @@ class QueueServiceUnitTest {
 	fun `토큰 검증 시, 토큰의 활성 상태가 ACTIVATED가 아니라면 CustomException이 발생한다`(inputType: QueueActiveStatus) {
 		// given
 		if (inputType == QueueActiveStatus.ACTIVATED) return
-		
+
 		val tokenUUID = "myTokenUUID"
 		val token = Instancio.of(Queue::class.java)
 			.set(field(Queue::tokenUUID), tokenUUID)

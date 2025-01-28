@@ -34,8 +34,6 @@ class DistributedLockAspect(
 			require(available) { return false }
 
 			return (joinPoint as ProceedingJoinPoint).proceed()
-		} catch (e: InterruptedException) {
-			throw e
 		} finally {
 			runCatching { lock.unlock() }
 				.onFailure { log.warn("Redis distributed lock is already unlocked : key={}", lockKey) }

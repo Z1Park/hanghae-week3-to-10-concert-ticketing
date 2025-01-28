@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus.ACTIVATED
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus.WAITING
+import kr.hhplus.be.server.domain.queue.model.Queue
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus.ACTIVATED
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus.WAITING
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import kotlin.math.ceil

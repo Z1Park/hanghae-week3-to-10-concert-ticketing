@@ -1,7 +1,9 @@
 package kr.hhplus.be.server.domain.queue
 
 import kr.hhplus.be.server.TestContainerCleaner
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import kr.hhplus.be.server.infrastructure.queue.QueueJpaRepository
+import kr.hhplus.be.server.infrastructure.queue.entity.QueueJpaEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,7 +30,7 @@ class QueueServiceIntegrationTest(
 		val testTime = LocalDateTime.of(2025, 1, 8, 23, 56, 46)
 		for (i in 1L..10L) {
 			val expiredAt = if (i % 2 == 0L) testTime.plusNanos(1000) else testTime.minusSeconds(1000)
-			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, expiredAt)
+			val activatedQueue = QueueJpaEntity("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, expiredAt)
 			queueJpaRepository.save(activatedQueue)
 		}
 
@@ -49,11 +51,11 @@ class QueueServiceIntegrationTest(
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 8, 10, 49, 56)
 		for (i in 1L..10L) {
-			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, testTime.plusMinutes(10))
+			val activatedQueue = QueueJpaEntity("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED, testTime.plusMinutes(10))
 			queueJpaRepository.save(activatedQueue)
 		}
 		for (i in 11L..100L) {
-			val waitingQueue = Queue("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
+			val waitingQueue = QueueJpaEntity("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
 			queueJpaRepository.save(waitingQueue)
 		}
 
@@ -61,7 +63,7 @@ class QueueServiceIntegrationTest(
 		sut.activateTokens() { testTime }
 
 		//then
-		val allQueues = queueJpaRepository.findAll()
+		val allQueues = queueJpaRepository.findAll().map { it.toDomain() }
 		val activatedQueues = allQueues.filter { it.isActivated() }
 		val minWaitingTokenTime = allQueues.filter { it.activateStatus == QueueActiveStatus.WAITING }.minOfOrNull { it.createdAt }!!
 		val waitingCount = allQueues.count { it.activateStatus == QueueActiveStatus.WAITING }
@@ -76,7 +78,7 @@ class QueueServiceIntegrationTest(
 	fun `토큰 비활성화 시, tokenUUID로 조회한 토큰을 비활성화 시킨다`() {
 		// given
 		val tokenUUID = "myTokenUUID"
-		val token = Queue("myUserUUID", tokenUUID, QueueActiveStatus.ACTIVATED)
+		val token = QueueJpaEntity("myUserUUID", tokenUUID, QueueActiveStatus.ACTIVATED)
 		queueJpaRepository.save(token)
 
 		// when

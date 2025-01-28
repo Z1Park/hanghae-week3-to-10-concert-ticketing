@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.queue
 
+import kr.hhplus.be.server.domain.queue.model.Queue
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 

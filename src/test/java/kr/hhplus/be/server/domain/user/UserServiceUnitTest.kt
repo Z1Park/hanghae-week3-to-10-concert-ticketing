@@ -5,6 +5,9 @@ import io.mockk.mockkObject
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.user.model.PointHistory
+import kr.hhplus.be.server.domain.user.model.PointHistoryType
+import kr.hhplus.be.server.domain.user.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -120,7 +123,6 @@ class UserServiceUnitTest {
 		sut.charge(userUUID, chargeAmount)
 
 		//then
-		verify(userRepository).save(pointHistory)
 		verify(userRepository).save(user)
 
 		assertThat(user.balance).isEqualTo(10000)
@@ -168,7 +170,6 @@ class UserServiceUnitTest {
 		sut.use(userUUID, useAmount)
 
 		//then
-		verify(userRepository).save(pointHistory)
 		verify(userRepository).save(user)
 
 		assertThat(user.balance).isEqualTo(6000)
@@ -195,18 +196,18 @@ class UserServiceUnitTest {
 		// given
 		val userId = 31L
 		val pointHistoryId = 48L
-		val user = Instancio.of(User::class.java)
-			.set(field(User::balance), 1300)
-			.create()
 		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::id), pointHistoryId)
 			.set(field(PointHistory::type), PointHistoryType.USE)
 			.set(field(PointHistory::amount), 700)
+			.create()
+		val user = Instancio.of(User::class.java)
+			.set(field(User::balance), 1300)
+			.set(field(User::pointHistories), mutableListOf(pointHistory))
 			.create()
 
 		`when`(userRepository.findById(userId))
 			.then { user }
-		`when`(userRepository.findPointHistoryById(pointHistoryId))
-			.then { pointHistory }
 
 		// when
 		sut.rollbackUsePointHistory(userId, pointHistoryId)
@@ -215,7 +216,7 @@ class UserServiceUnitTest {
 		assertThat(user.balance).isEqualTo(2000)
 		assertThat(user.pointHistories).doesNotContain(pointHistory)
 
-		verify(userRepository).delete(pointHistory)
+		verify(userRepository).save(user)
 	}
 
 	@Test
@@ -223,18 +224,18 @@ class UserServiceUnitTest {
 		// given
 		val userId = 33L
 		val pointHistoryId = 93L
-		val user = Instancio.of(User::class.java)
-			.set(field(User::balance), 1300)
-			.create()
 		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::id), pointHistoryId)
 			.set(field(PointHistory::type), PointHistoryType.CHARGE)
 			.set(field(PointHistory::amount), 700)
+			.create()
+		val user = Instancio.of(User::class.java)
+			.set(field(User::balance), 1300)
+			.set(field(User::pointHistories), mutableListOf(pointHistory))
 			.create()
 
 		`when`(userRepository.findById(userId))
 			.then { user }
-		`when`(userRepository.findPointHistoryById(pointHistoryId))
-			.then { pointHistory }
 
 		// when then
 		assertThatThrownBy { sut.rollbackUsePointHistory(userId, pointHistoryId) }

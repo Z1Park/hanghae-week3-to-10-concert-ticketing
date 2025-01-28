@@ -1,16 +1,12 @@
 package kr.hhplus.be.server.domain.user
 
+import kr.hhplus.be.server.domain.user.model.User
+
 interface UserRepository {
 
 	fun findById(userId: Long): User?
 
 	fun findByUuid(uuid: String): User?
 
-	fun findPointHistoryById(pointHistoryId: Long): PointHistory?
-
 	fun save(user: User): User
-
-	fun save(pointHistory: PointHistory): PointHistory
-
-	fun delete(pointHistory: PointHistory)
 }

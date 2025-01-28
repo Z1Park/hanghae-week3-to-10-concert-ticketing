@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.payment
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
+import kr.hhplus.be.server.domain.payment.model.Payment
 import org.springframework.stereotype.Service
 
 @Service

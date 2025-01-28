@@ -5,6 +5,9 @@ import io.mockk.mockkObject
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.user.model.PointHistory
+import kr.hhplus.be.server.domain.user.model.PointHistoryType
+import kr.hhplus.be.server.domain.user.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -62,8 +65,9 @@ class UserUnitTest {
 	@Test
 	fun `포인트 사용 롤백 시, 사용내역에 따라 잔고가 다시 증가하고 사용 내역을 리스트에서 제거한다`() {
 		// given
+		val pointHistoryId = 13L
 		val pointHistory = Instancio.of(PointHistory::class.java)
-			.set(field(PointHistory::id), 13L)
+			.set(field(PointHistory::id), pointHistoryId)
 			.set(field(PointHistory::type), PointHistoryType.USE)
 			.set(field(PointHistory::amount), 1500)
 			.create()
@@ -74,7 +78,7 @@ class UserUnitTest {
 			.create()
 
 		// when
-		user.rollbackUse(pointHistory)
+		user.rollbackUse(pointHistoryId)
 
 		//then
 		assertThat(user.balance).isEqualTo(4500)
@@ -84,7 +88,9 @@ class UserUnitTest {
 	@Test
 	fun `포인트 사용 롤백 시, 충전 요청에 대해 롤백을 시도하면 CustomException이 발생한다`() {
 		// given
+		val pointHistoryId = 13L
 		val pointHistory = Instancio.of(PointHistory::class.java)
+			.set(field(PointHistory::id), pointHistoryId)
 			.set(field(PointHistory::type), PointHistoryType.CHARGE)
 			.create()
 		val user = Instancio.of(User::class.java)
@@ -93,7 +99,7 @@ class UserUnitTest {
 			.create()
 
 		// when then
-		assertThatThrownBy { user.rollbackUse(pointHistory) }
+		assertThatThrownBy { user.rollbackUse(pointHistoryId) }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ROLLBACK_FAIL)

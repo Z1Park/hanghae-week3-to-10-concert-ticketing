@@ -2,9 +2,9 @@ package kr.hhplus.be.server.application.queue
 
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.common.component.UuidGenerator
-import kr.hhplus.be.server.domain.queue.Queue
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import kr.hhplus.be.server.infrastructure.queue.QueueJpaRepository
+import kr.hhplus.be.server.infrastructure.queue.entity.QueueJpaEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,20 +30,20 @@ class QueueFacadeServiceIntegrationTest(
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 8, 10, 49, 56)
 		for (i in 1L..10L) {
-			val activatedQueue = Queue("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED)
+			val activatedQueue = QueueJpaEntity("activatedUserUUID$i", "activatedTokenUUID$i", QueueActiveStatus.ACTIVATED)
 			queueJpaRepository.save(activatedQueue)
 		}
 
 		for (i in 11L..90L) {
-			val waitingQueue = Queue("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
+			val waitingQueue = QueueJpaEntity("waitingUserUUID$i", "waitingTokenUUID$i", QueueActiveStatus.WAITING)
 			queueJpaRepository.save(waitingQueue)
 		}
 
-		val queue = Queue("myUserUUID", "myTokenUUID", QueueActiveStatus.WAITING, testTime.plusMinutes(2))
+		val queue = QueueJpaEntity("myUserUUID", "myTokenUUID", QueueActiveStatus.WAITING, testTime.plusMinutes(2))
 		queueJpaRepository.save(queue)
 
 		// when
-		val actual = sut.getWaitingInfo("myTokenUUID")
+		val actual = sut.getWaitingInfo(queue.tokenUUID)
 
 		//then
 		assertThat(actual.myWaitingOrder).isEqualTo(80)

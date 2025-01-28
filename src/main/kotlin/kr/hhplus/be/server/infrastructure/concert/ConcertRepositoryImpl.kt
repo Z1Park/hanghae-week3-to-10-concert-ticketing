@@ -1,9 +1,10 @@
 package kr.hhplus.be.server.infrastructure.concert
 
-import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.domain.concert.ConcertRepository
-import kr.hhplus.be.server.domain.concert.ConcertSchedule
-import kr.hhplus.be.server.domain.concert.ConcertSeat
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertSeatEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
@@ -15,23 +16,23 @@ class ConcertRepositoryImpl(
 ) : ConcertRepository {
 
 	override fun findAllConcert(finished: Boolean): List<Concert> =
-		concertJpaRepository.findAllByFinished(finished)
+		concertJpaRepository.findAllByFinished(finished).map { it.toDomain() }
 
 	override fun findConcert(concertId: Long): Concert? =
-		concertJpaRepository.findByIdOrNull(concertId)
+		concertJpaRepository.findByIdOrNull(concertId)?.toDomain()
 
 	override fun findSchedule(concertScheduleId: Long): ConcertSchedule? =
-		concertScheduleJpaRepository.findByIdOrNull(concertScheduleId)
+		concertScheduleJpaRepository.findByIdOrNull(concertScheduleId)?.toDomain()
 
 	override fun findAllScheduleByConcertId(concertId: Long): List<ConcertSchedule> =
-		concertScheduleJpaRepository.findAllByConcertId(concertId)
+		concertScheduleJpaRepository.findAllByConcertId(concertId).map { it.toDomain() }
 
 	override fun findSeat(concertSeatId: Long): ConcertSeat? =
-		concertSeatJpaRepository.findByIdOrNull(concertSeatId)
+		concertSeatJpaRepository.findByIdOrNull(concertSeatId)?.toDomain()
 
 	override fun findAllSeatByConcertScheduleId(concertScheduleId: Long): List<ConcertSeat> =
-		concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId)
+		concertSeatJpaRepository.findAllByConcertScheduleId(concertScheduleId).map { it.toDomain() }
 
 	override fun save(concertSeat: ConcertSeat): ConcertSeat =
-		concertSeatJpaRepository.save(concertSeat)
+		concertSeatJpaRepository.save(ConcertSeatEntity(concertSeat)).toDomain()
 }

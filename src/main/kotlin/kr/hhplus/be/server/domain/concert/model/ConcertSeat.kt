@@ -1,26 +1,19 @@
-package kr.hhplus.be.server.domain.concert
+package kr.hhplus.be.server.domain.concert.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.domain.BaseDomain
 import java.time.LocalDateTime
 
-@Entity
-@Table(name = "concert_seat")
 class ConcertSeat(
-	@Column(name = "seat_number", nullable = false)
 	var seatNumber: Int,
 
-	@Column(nullable = false)
 	var price: Int,
 
-	@Column(name = "concert_schedule_id", nullable = false)
 	val concertScheduleId: Long,
 
-	@Column(name = "reserved_until")
-	var reservedUntil: LocalDateTime?
-) : BaseEntity() {
+	var reservedUntil: LocalDateTime?,
+
+	id: Long = 0L
+) : BaseDomain(id) {
 
 	fun isOnConcertSchedule(concertScheduleId: Long): Boolean = this.concertScheduleId == concertScheduleId
 

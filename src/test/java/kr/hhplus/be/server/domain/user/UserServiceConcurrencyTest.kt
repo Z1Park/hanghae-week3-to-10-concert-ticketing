@@ -1,8 +1,10 @@
 package kr.hhplus.be.server.domain.user
 
 import kr.hhplus.be.server.TestContainerCleaner
+import kr.hhplus.be.server.domain.user.model.PointHistoryType
 import kr.hhplus.be.server.infrastructure.user.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,7 +32,7 @@ class UserServiceConcurrencyTest(
 	fun `유저 충전 요청 시, 동일 유저가 1000원씩 3번 충전 요청을 동시에 보내면 1번만 성공하고 2번은 실패하여 1000원만 충전된다`() {
 		// given
 		val userUUID = "myUserUUID"
-		val user = User("김항해", userUUID, 0)
+		val user = UserEntity("김항해", userUUID, 0)
 		userJpaRepository.save(user)
 
 		val repeat = 3
@@ -71,7 +73,7 @@ class UserServiceConcurrencyTest(
 	fun `유저 사용 요청 시, 동일 유저가 500원씩 3번 사용 요청을 동시에 보내면 1번만 성공하고 2번은 실패하여 500원만 사용된다`() {
 		// given
 		val userUUID = "myUserUUID"
-		val user = User("김항해", userUUID, 2000)
+		val user = UserEntity("김항해", userUUID, 2000)
 		userJpaRepository.save(user)
 
 		val repeat = 3

@@ -5,6 +5,7 @@ import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.redis.DistributedLock
+import kr.hhplus.be.server.domain.reservation.model.Reservation
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

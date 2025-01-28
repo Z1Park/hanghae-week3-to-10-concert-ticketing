@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.queue
 
 import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.queue.model.Queue
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.instancio.Instancio
 import org.junit.jupiter.api.Test

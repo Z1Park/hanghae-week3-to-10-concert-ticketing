@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.common.resolver
 
-import kr.hhplus.be.server.domain.queue.QueueActiveStatus
+import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)

@@ -3,15 +3,15 @@ package kr.hhplus.be.server.domain.reservation
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.concert.Concert
-import kr.hhplus.be.server.domain.concert.ConcertSchedule
-import kr.hhplus.be.server.domain.concert.ConcertSeat
-import kr.hhplus.be.server.domain.user.User
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertEntity
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertScheduleEntity
+import kr.hhplus.be.server.infrastructure.concert.entity.ConcertSeatEntity
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,23 +40,23 @@ class ReservationServiceConcurrencyTest(
 	@Test
 	fun `콘서트 에약 시, 동일한 스케줄의 동일한 좌석에 대해 5개의 요청 동시에 들어와도 예약은 1개만 생겨야한다`() {
 		// given
-		val user1 = User("김항해", "유저토큰1", 1000)
-		val user2 = User("나항해", "유저토큰2", 2000)
-		val user3 = User("박항해", "유저토큰3", 3000)
-		val user4 = User("이항해", "유저토큰4", 4000)
-		val user5 = User("송항해", "유저토큰5", 5000)
+		val user1 = UserEntity("김항해", "유저토큰1", 1000)
+		val user2 = UserEntity("나항해", "유저토큰2", 2000)
+		val user3 = UserEntity("박항해", "유저토큰3", 3000)
+		val user4 = UserEntity("이항해", "유저토큰4", 4000)
+		val user5 = UserEntity("송항해", "유저토큰5", 5000)
 		val users = listOf(user1, user2, user3, user4, user5)
 		userJpaRepository.saveAll(users)
 
-		val concert = Concert("항해콘", "나가수")
+		val concert = ConcertEntity("항해콘", "나가수")
 		concertJpaRepository.save(concert)
 
 		val testTime = LocalDateTime.of(2025, 1, 17, 12, 59, 59)
-		val schedule = ConcertSchedule(50, testTime.plusHours(10), testTime.plusHours(13), concert.id)
+		val schedule = ConcertScheduleEntity(50, testTime.plusHours(10), testTime.plusHours(13), concert.id)
 		concertScheduleJpaRepository.save(schedule)
 
 		val price = 900
-		val seat = ConcertSeat(11, price, schedule.id, testTime.minusMinutes(5))
+		val seat = ConcertSeatEntity(11, price, schedule.id, testTime.minusMinutes(5))
 		concertSeatJpaRepository.save(seat)
 
 		val expiredAt = testTime.plusMinutes(5)

@@ -1,28 +1,22 @@
-package kr.hhplus.be.server.domain.user
+package kr.hhplus.be.server.domain.user.model
 
-import jakarta.persistence.*
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.domain.BaseDomain
 
-@Entity
-@Table(name = "user")
 class User(
-	@Column(nullable = false)
 	var username: String,
 
-	@Column(name = "user_uuid", nullable = false)
 	var userUUID: String,
 
-	@Column(nullable = false, unique = true)
 	var balance: Int,
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "userId")
 	val pointHistories: MutableList<PointHistory> = mutableListOf(),
 
-	@Version
-	var version: Long = 0L
-) : BaseEntity() {
+	var version: Long = 0L,
+
+	id: Long = 0L
+) : BaseDomain(id) {
 
 	companion object {
 		const val BALANCE_LIMIT = 1_000_000
@@ -56,7 +50,8 @@ class User(
 		return pointHistory
 	}
 
-	fun rollbackUse(pointHistory: PointHistory) {
+	fun rollbackUse(pointHistoryId: Long) {
+		val pointHistory = pointHistories.first { it.id == pointHistoryId }
 		require(pointHistory.type == PointHistoryType.USE) { throw CustomException(ErrorCode.ROLLBACK_FAIL) }
 
 		balance += pointHistory.amount
