@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.queue.QueueFacadeService
 import kr.hhplus.be.server.common.component.UuidV4Generator
+import kr.hhplus.be.server.common.interceptor.QUEUE_TOKEN_NAME
 import kr.hhplus.be.server.common.resolver.QueueToken
 import kr.hhplus.be.server.common.resolver.UserToken
+import kr.hhplus.be.server.domain.queue.QueueActiveStatus
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -34,7 +36,7 @@ class QueueController(
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
 				SET_COOKIE,
-				ResponseCookie.from("concert-access-token", issuedQueueToken).build().toString()
+				ResponseCookie.from(QUEUE_TOKEN_NAME, issuedQueueToken).build().toString()
 			)
 			.body(Unit)
 	}
@@ -46,7 +48,7 @@ class QueueController(
 	@GetMapping("")
 	fun getWaitingInformation(
 		@UserToken userToken: String,
-		@QueueToken(QueueToken.RequiredType.WAITING) queueToken: String
+		@QueueToken(QueueActiveStatus.WAITING) queueToken: String
 	): WaitingInformationResponse {
 		val waitingInfo = queueFacadeService.getWaitingInfo(queueToken)
 		return WaitingInformationResponse.from(waitingInfo)

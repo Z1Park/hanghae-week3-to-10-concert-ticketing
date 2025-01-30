@@ -38,6 +38,15 @@ class QueueService(
 		return QueueWaitingInfo(waitingOrder, expectedWaitingSeconds)
 	}
 
+	fun validateQueueToken(tokenUUID: String, requiredType: QueueActiveStatus) {
+		val queue = queueRepository.findByUUID(tokenUUID)
+			?: throw CustomException(ErrorCode.INVALID_QUEUE_TOKEN, "tokenUUID=$tokenUUID")
+
+		if (requiredType == ACTIVATED) {
+			require(queue.isActivated()) { throw CustomException(ErrorCode.REQUIRE_ACTIVATED_QUEUE_TOKEN) }
+		}
+	}
+
 	@Transactional
 	fun createNewToken(userUUID: String, tokenUUID: String): Queue {
 		val newToken = Queue.createNewToken(userUUID, tokenUUID)

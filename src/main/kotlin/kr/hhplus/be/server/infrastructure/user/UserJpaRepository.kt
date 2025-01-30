@@ -9,6 +9,6 @@ interface UserJpaRepository : JpaRepository<User, Long> {
 
 	fun findByUserUUID(uuid: String): User?
 
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Lock(LockModeType.OPTIMISTIC)
 	fun findForUpdateByUserUUID(uuid: String): User?
 }

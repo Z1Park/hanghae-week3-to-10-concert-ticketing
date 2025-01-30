@@ -23,7 +23,9 @@ class UserFacadeService(
 	}
 
 	fun charge(userUUID: String, chargeAmount: Int): Int {
-		val user = userService.charge(userUUID, chargeAmount)
+		userService.charge(userUUID, chargeAmount)
+
+		val user = userService.getByUuid(userUUID)
 		return user.balance
 	}
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.user.UserFacadeService
 import kr.hhplus.be.server.common.component.UuidGenerator
+import kr.hhplus.be.server.common.interceptor.USER_TOKEN_NAME
 import kr.hhplus.be.server.common.resolver.UserToken
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
@@ -30,7 +31,7 @@ class UserController(
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
 				SET_COOKIE,
-				ResponseCookie.from("user-access-token", issuedUserToken).build().toString()
+				ResponseCookie.from(USER_TOKEN_NAME, issuedUserToken).build().toString()
 			)
 			.body(Unit)
 	}
