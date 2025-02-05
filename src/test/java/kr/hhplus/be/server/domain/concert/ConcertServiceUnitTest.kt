@@ -225,6 +225,39 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
+	fun `좌석 선점 롤백 시, 원래의 reservedUntill 값을 원래의 데이터로 복구한다`() {
+		// given
+		val seatId = 12L
+		val testTime = LocalDateTime.of(2025, 2, 5, 11, 25, 31)
+		val expiredAt = testTime.minusSeconds(3)
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), seatId)
+			.set(field(ConcertSeat::reservedUntil), testTime.plusMinutes(5))
+			.create()
+
+		`when`(concertRepository.findSeat(seatId))
+			.then { seat }
+
+		// when
+		sut.rollbackPreoccupyConcertSeat(seatId, expiredAt)
+
+		//then
+		assertThat(seat.reservedUntil).isEqualTo(expiredAt)
+	}
+
+	@Test
+	fun `좌석 선점 롤백 시, 잘못된 Id로 조회하면 CustomException이 발생한다`() {
+		// given
+		val expiredAt = LocalDateTime.of(2025, 2, 5, 11, 23, 59)
+
+		// when then
+		assertThatThrownBy { sut.rollbackPreoccupyConcertSeat(1L, expiredAt) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
 	fun `좌석 매진 요청 시, 좌석의 만료 기한을 null로 바꾼다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)

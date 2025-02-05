@@ -63,11 +63,21 @@ class ConcertService(
 			throw CustomException(ErrorCode.ALREADY_RESERVED, "concertSeatId=$concertSeat.id")
 		}
 
+		val originExpiredAt = concertSeat.reservedUntil
 		val expiredAt = currentTime.plusMinutes(RESERVATION_TIME_MINUTES)
 		concertSeat.reserveUntil(expiredAt)
 		concertRepository.save(concertSeat)
 
-		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt)
+		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt, originExpiredAt)
+	}
+
+	@Transactional
+	fun rollbackPreoccupyConcertSeat(seatId: Long, expiredAt: LocalDateTime?) {
+		val concertSeat = concertRepository.findSeat(seatId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${seatId}")
+
+		concertSeat.rollbackReservedUntil(expiredAt)
+		concertRepository.save(concertSeat)
 	}
 
 	@Transactional

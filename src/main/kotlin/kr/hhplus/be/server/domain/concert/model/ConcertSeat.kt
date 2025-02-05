@@ -23,6 +23,10 @@ class ConcertSeat(
 		reservedUntil = expiredAt
 	}
 
+	fun rollbackReservedUntil(expiredAt: LocalDateTime?) {
+		reservedUntil = expiredAt
+	}
+
 	fun soldOut() {
 		reservedUntil = null
 	}

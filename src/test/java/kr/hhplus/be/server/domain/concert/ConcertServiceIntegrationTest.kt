@@ -147,6 +147,21 @@ class ConcertServiceIntegrationTest(
 	}
 
 	@Test
+	fun `좌석 선점 롤백 시, 해당 좌석의 만료 기한이 파라미터로 주어지는 원래의 만료기한으로 변경된다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 2, 5, 11, 30, 37)
+		val seat = ConcertSeatEntity(100, 15000, 3L, testTime.plusMinutes(5))
+		concertSeatJpaRepository.save(seat)
+
+		// when
+		sut.rollbackPreoccupyConcertSeat(seat.id, testTime)
+
+		//then
+		val actual = concertSeatJpaRepository.findByIdOrNull(seat.id)!!
+		assertThat(actual.reservedUntil).isEqualTo(testTime)
+	}
+
+	@Test
 	fun `좌석 매진 요청 시, 해당 좌석의 만료 기한에 null이 저장된다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 9, 22, 11, 37)

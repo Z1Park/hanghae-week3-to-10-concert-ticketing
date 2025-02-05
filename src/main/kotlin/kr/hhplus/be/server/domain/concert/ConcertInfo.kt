@@ -47,14 +47,20 @@ class ConcertInfo {
 	data class ReservedSeat(
 		val seatId: Long,
 		val price: Int,
-		val expiredAt: LocalDateTime
+		val expiredAt: LocalDateTime,
+		val originExpiredAt: LocalDateTime?
 	) {
 		companion object {
-			fun of(concertSeat: ConcertSeat, expiredAt: LocalDateTime): ReservedSeat =
+			fun of(
+				concertSeat: ConcertSeat,
+				expiredAt: LocalDateTime,
+				originExpiredAt: LocalDateTime?
+			): ReservedSeat =
 				ReservedSeat(
 					concertSeat.id,
 					concertSeat.price,
-					expiredAt
+					expiredAt,
+					originExpiredAt
 				)
 		}
 	}

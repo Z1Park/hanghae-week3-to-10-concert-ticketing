@@ -38,8 +38,16 @@ class ReservationFacadeService(
 			reservedSeatInfo.seatId,
 			reservedSeatInfo.expiredAt
 		)
-		val reservation = reservationService.reserve(command, clockHolder)
-		return ReservationResult.from(reservation)
+		try {
+			val reservation = reservationService.reserve(command, clockHolder)
+
+			return ReservationResult.from(reservation)
+		} catch (e: Exception) {
+			log.error("예약 실패 및 롤백 시퀀스 실행 : ", e)
+
+			concertService.rollbackPreoccupyConcertSeat(reservedSeatInfo.seatId, reservedSeatInfo.originExpiredAt)
+			throw e
+		}
 	}
 
 	fun payReservation(paymentCri: PaymentCri.Create) {
