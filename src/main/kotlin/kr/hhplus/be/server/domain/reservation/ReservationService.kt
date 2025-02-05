@@ -14,7 +14,7 @@ class ReservationService(
 	private val reservationRepository: ReservationRepository
 ) {
 	companion object {
-		private const val RESERVATION_KEY = "seatReservation:"
+		private const val RESERVATION_KEY = "reservation:"
 	}
 
 	fun getReservationForPay(reservationId: Long, clockHolder: ClockHolder): Reservation {
@@ -28,7 +28,6 @@ class ReservationService(
 		return reservation
 	}
 
-	@DistributedLock(prefix = RESERVATION_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
 		val seatReservation = reservationRepository.findByScheduleIdAndSeatId(command.concertScheduleId, command.concertSeatId)
@@ -44,6 +43,7 @@ class ReservationService(
 		return reservationRepository.save(reservation)
 	}
 
+	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")
 	@Transactional
 	fun makeSoldOut(reservationId: Long) {
 		val reservation = reservationRepository.findById(reservationId)

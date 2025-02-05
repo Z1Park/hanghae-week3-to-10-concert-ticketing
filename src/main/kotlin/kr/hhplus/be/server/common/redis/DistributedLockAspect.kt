@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.common.redis
 
-import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -22,7 +21,7 @@ class DistributedLockAspect(
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	@Around("@annotation(DistributedLock)")
-	fun lockByRedisson(joinPoint: JoinPoint): Any {
+	fun lockByRedisson(joinPoint: ProceedingJoinPoint): Any? {
 		val signature = joinPoint.signature as MethodSignature
 		val distributedLock = signature.method.getAnnotation(DistributedLock::class.java)
 
@@ -33,7 +32,7 @@ class DistributedLockAspect(
 			val available = lock.tryLock(distributedLock.starvationTime, distributedLock.lockTimeToLive, TimeUnit.MILLISECONDS)
 			require(available) { return false }
 
-			return (joinPoint as ProceedingJoinPoint).proceed()
+			return joinPoint.proceed()
 		} finally {
 			runCatching { lock.unlock() }
 				.onFailure { log.warn("Redis distributed lock is already unlocked : key={}", lockKey) }
