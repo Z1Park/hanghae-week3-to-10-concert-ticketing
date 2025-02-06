@@ -8,6 +8,8 @@ interface ConcertRepository {
 
 	fun findAllConcert(finished: Boolean): List<Concert>
 
+	fun findAllConcertById(concertIds: List<Long>): List<Concert>
+
 	fun findConcert(concertId: Long): Concert?
 
 	fun findSchedule(concertScheduleId: Long): ConcertSchedule?

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.interfaces.concert
+package kr.hhplus.be.server.interfaces.concert.dto
 
 import kr.hhplus.be.server.domain.concert.ConcertInfo
 
@@ -18,6 +18,6 @@ data class ConcertInformationDto(
 ) {
 	companion object {
 		fun from(concertInfo: ConcertInfo.ConcertDto): ConcertInformationDto =
-			ConcertInformationDto(concertInfo.concertId, concertInfo.title, concertInfo.provider)
+			ConcertInformationDto(concertInfo.id, concertInfo.title, concertInfo.provider)
 	}
 }

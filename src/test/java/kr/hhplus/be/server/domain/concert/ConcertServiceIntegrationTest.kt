@@ -44,11 +44,11 @@ class ConcertServiceIntegrationTest(
 
 		//then
 		assertThat(actual).hasSize(3)
-			.noneMatch { it.concertId == concert1.id || it.title == "콘서트1" || it.provider == "가수1" }
-			.noneMatch { it.concertId == concert2.id || it.title == "콘서트2" || it.provider == "가수2" }
-			.anyMatch { it.concertId == concert3.id && it.title == "콘서트3" && it.provider == "가수3" }
-			.anyMatch { it.concertId == concert4.id && it.title == "콘서트4" && it.provider == "가수4" }
-			.anyMatch { it.concertId == concert5.id && it.title == "콘서트5" && it.provider == "가수5" }
+			.noneMatch { it.id == concert1.id || it.title == "콘서트1" || it.provider == "가수1" }
+			.noneMatch { it.id == concert2.id || it.title == "콘서트2" || it.provider == "가수2" }
+			.anyMatch { it.id == concert3.id && it.title == "콘서트3" && it.provider == "가수3" }
+			.anyMatch { it.id == concert4.id && it.title == "콘서트4" && it.provider == "가수4" }
+			.anyMatch { it.id == concert5.id && it.title == "콘서트5" && it.provider == "가수5" }
 	}
 
 	@Test

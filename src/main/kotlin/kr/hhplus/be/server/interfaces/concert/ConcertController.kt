@@ -5,10 +5,11 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.application.concert.ConcertFacadeService
 import kr.hhplus.be.server.common.resolver.QueueToken
 import kr.hhplus.be.server.common.resolver.UserToken
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import kr.hhplus.be.server.interfaces.concert.dto.ConcertInformationResponse
+import kr.hhplus.be.server.interfaces.concert.dto.ConcertScheduleResponse
+import kr.hhplus.be.server.interfaces.concert.dto.ConcertSeatResponse
+import kr.hhplus.be.server.interfaces.concert.dto.TopConcertInformationResponse
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "콘서트")
 @RestController
@@ -58,5 +59,25 @@ class ConcertController(private val concertFacadeService: ConcertFacadeService) 
 		val concertSeatInformation = concertFacadeService.getConcertSeatInformation(concertId, scheduleId)
 
 		return ConcertSeatResponse.from(concertSeatInformation)
+	}
+
+	@Operation(
+		summary = "일간 인기 콘서트 캐시 갱신 요청 API",
+		description = "호출 시 일간 인기 콘서트 정보를 캐시에 갱신하며, 외부 배치에서 매일 00:00:00에 부른다",
+	)
+	@PostMapping("/daily")
+	fun updateTopConcerts() {
+		concertFacadeService.updateYesterdayTopConcertInfo()
+	}
+
+	@Operation(
+		summary = "일간 인기 콘서트 조회 API",
+		description = "일간 인기 콘서트 정보를 조회한다.",
+	)
+	@GetMapping("/daily")
+	fun getTopConcerts(): TopConcertInformationResponse {
+		val topConcerts = concertFacadeService.getYesterdayTopConcertInfo()
+
+		return TopConcertInformationResponse.from(topConcerts)
 	}
 }

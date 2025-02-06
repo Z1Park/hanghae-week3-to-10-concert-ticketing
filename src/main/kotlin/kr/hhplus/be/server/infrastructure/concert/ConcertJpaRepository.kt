@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface ConcertJpaRepository : JpaRepository<ConcertEntity, Long> {
 
 	fun findAllByFinished(finished: Boolean): List<ConcertEntity>
+
+	fun findAllByIdIn(ids: List<Long>): List<ConcertEntity>
 }

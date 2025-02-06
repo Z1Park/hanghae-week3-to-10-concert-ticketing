@@ -220,4 +220,18 @@ class ReservationServiceUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
+
+	@Test
+	fun `전날 예약 조회 시, testTime의 전날의 00시 00분 00초부터 testTime의 00시 00분 00초까지를 조회한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 2, 7, 3, 58, 3)
+
+		// when
+		sut.getYesterdayReservationConcertCounts() { testTime }
+
+		//then
+		val expectedEnd = testTime.toLocalDate().atStartOfDay()
+		val expectedStart = expectedEnd.minusDays(1)
+		verify(reservationRepository).findAllByCreatedAtBetween(expectedStart, expectedEnd)
+	}
 }

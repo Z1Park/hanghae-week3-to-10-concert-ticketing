@@ -61,4 +61,12 @@ class ReservationService(
 		reservation.rollbackSoldOut(expiredAt)
 		reservationRepository.save(reservation)
 	}
+
+	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): Map<Long, Int> {
+		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
+		val start = end.minusDays(1)
+
+		val yesterdayReservations = reservationRepository.findAllByCreatedAtBetween(start, end)
+		return yesterdayReservations.groupBy { it.concertId }.mapValues { it.value.size }
+	}
 }

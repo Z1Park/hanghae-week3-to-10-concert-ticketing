@@ -18,6 +18,9 @@ class ConcertRepositoryImpl(
 	override fun findAllConcert(finished: Boolean): List<Concert> =
 		concertJpaRepository.findAllByFinished(finished).map { it.toDomain() }
 
+	override fun findAllConcertById(concertIds: List<Long>): List<Concert> =
+		concertJpaRepository.findAllByIdIn(concertIds).map { it.toDomain() }
+
 	override fun findConcert(concertId: Long): Concert? =
 		concertJpaRepository.findByIdOrNull(concertId)?.toDomain()
 

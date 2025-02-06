@@ -44,9 +44,9 @@ class ConcertServiceUnitTest {
 		verify(concertRepository).findAllConcert(false)
 
 		assertThat(actual).hasSize(3)
-			.anyMatch { it.concertId == 1L && it.title == "콘서트1" && it.provider == "가수1" }
-			.anyMatch { it.concertId == 2L && it.title == "콘서트2" && it.provider == "그룹1" }
-			.anyMatch { it.concertId == 3L && it.title == "콘서트3" && it.provider == "가수2" }
+			.anyMatch { it.id == 1L && it.title == "콘서트1" && it.provider == "가수1" }
+			.anyMatch { it.id == 2L && it.title == "콘서트2" && it.provider == "그룹1" }
+			.anyMatch { it.id == 3L && it.title == "콘서트3" && it.provider == "가수2" }
 	}
 
 	@Test
@@ -330,6 +330,25 @@ class ConcertServiceUnitTest {
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
+	fun `인기 콘서트 정보 조회 시, 여러 개의 콘서트id 중 value가 가장 큰 20개에 대한 정보만 조회한다`() {
+		// given
+		val countByConcertId = hashMapOf<Long, Int>()
+		for (i in 1L until 30L) {
+			countByConcertId[i] = i.toInt()
+		}
+
+		// when
+		sut.getTopConcertInfo(countByConcertId)
+
+		//then
+		val expected = mutableListOf<Long>()
+		for (i in 29L downTo 10L) {
+			expected.add(i)
+		}
+		verify(concertRepository).findAllConcertById(expected)
 	}
 
 	private fun createConcert(

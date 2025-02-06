@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.reservation.model.Reservation
 import kr.hhplus.be.server.infrastructure.reservation.entity.ReservationEntity
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 class ReservationRepositoryImpl(
@@ -23,4 +24,7 @@ class ReservationRepositoryImpl(
 	override fun delete(reservation: Reservation) {
 		reservationJpaRepository.delete(ReservationEntity(reservation))
 	}
+
+	override fun findAllByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime): List<Reservation> =
+		reservationJpaRepository.findAllByCreatedAtBetween(start, end).map { it.toDomain() }
 }

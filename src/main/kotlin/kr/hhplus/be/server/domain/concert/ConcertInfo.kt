@@ -8,14 +8,17 @@ import java.time.LocalDateTime
 class ConcertInfo {
 
 	data class ConcertDto(
-		val concertId: Long,
+		val id: Long,
 		val title: String,
-		val provider: String
+		val provider: String,
+		val finished: Boolean
 	) {
 		companion object {
 			fun from(concert: Concert): ConcertDto =
-				ConcertDto(concert.id, concert.title, concert.provider)
+				ConcertDto(concert.id, concert.title, concert.provider, concert.finished)
 		}
+
+		fun toConcert(): Concert = Concert(title, provider, finished)
 	}
 
 	data class Schedule(
