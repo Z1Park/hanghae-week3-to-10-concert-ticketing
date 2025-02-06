@@ -1,13 +1,13 @@
-package kr.hhplus.be.server.interfaces.queue
+package kr.hhplus.be.server.interfaces.token
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.queue.QueueFacadeService
+import kr.hhplus.be.server.application.token.TokenFacadeService
 import kr.hhplus.be.server.common.component.UuidV4Generator
 import kr.hhplus.be.server.common.interceptor.QUEUE_TOKEN_NAME
 import kr.hhplus.be.server.common.resolver.QueueToken
 import kr.hhplus.be.server.common.resolver.UserToken
-import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
+import kr.hhplus.be.server.domain.token.model.TokenActiveStatus
 import org.springframework.http.HttpHeaders.SET_COOKIE
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "대기열")
 @RestController
 @RequestMapping("/tokens")
-class QueueController(
-	private val queueFacadeService: QueueFacadeService,
+class TokenController(
+	private val tokenFacadeService: TokenFacadeService,
 	private val uuidGenerator: UuidV4Generator
 ) {
 
@@ -31,7 +31,7 @@ class QueueController(
 	)
 	@PostMapping("")
 	fun issueQueueToken(@UserToken userToken: String): ResponseEntity<Unit> {
-		val issuedQueueToken = queueFacadeService.issueQueueToken(userToken, uuidGenerator)
+		val issuedQueueToken = tokenFacadeService.issueQueueToken(userToken, uuidGenerator)
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.header(
@@ -48,9 +48,9 @@ class QueueController(
 	@GetMapping("")
 	fun getWaitingInformation(
 		@UserToken userToken: String,
-		@QueueToken(QueueActiveStatus.WAITING) queueToken: String
+		@QueueToken(TokenActiveStatus.WAITING) queueToken: String
 	): WaitingInformationResponse {
-		val waitingInfo = queueFacadeService.getWaitingInfo(queueToken)
+		val waitingInfo = tokenFacadeService.getWaitingInfo(queueToken)
 		return WaitingInformationResponse.from(waitingInfo)
 	}
 
@@ -60,6 +60,6 @@ class QueueController(
 	)
 	@PostMapping("/activate")
 	fun activateToken() {
-		queueFacadeService.refreshTokens()
+		tokenFacadeService.refreshTokens()
 	}
 }

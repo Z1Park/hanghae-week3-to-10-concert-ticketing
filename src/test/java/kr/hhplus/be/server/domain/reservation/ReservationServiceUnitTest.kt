@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.domain.reservation
 
+import kr.hhplus.be.server.KSelect.Companion.field
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.domain.reservation.model.Reservation
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

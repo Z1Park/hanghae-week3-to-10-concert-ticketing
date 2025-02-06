@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain
+package kr.hhplus.be.server
 
 import org.instancio.Select
 import org.instancio.TargetSelector

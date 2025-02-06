@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.domain.payment
 
+import kr.hhplus.be.server.KSelect.Companion.field
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.domain.payment.model.Payment
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio

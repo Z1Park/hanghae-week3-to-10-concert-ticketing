@@ -4,7 +4,7 @@ import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
 import kr.hhplus.be.server.domain.payment.PaymentService
-import kr.hhplus.be.server.domain.queue.QueueService
+import kr.hhplus.be.server.domain.token.TokenService
 import kr.hhplus.be.server.domain.reservation.ReservationCommand
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentFlow
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentOrchestrator
@@ -19,7 +19,7 @@ class ReservationFacadeService(
 	private val userService: UserService,
 	private val concertService: ConcertService,
 	private val paymentService: PaymentService,
-	private val queueService: QueueService,
+	private val tokenService: TokenService,
 	private val orchestrator: ReservationPaymentOrchestrator,
 	private val clockHolder: ClockHolder
 ) {
@@ -70,9 +70,6 @@ class ReservationFacadeService(
 
 			val concertSeat = concertService.makeSoldOutConcertSeat(reservation.concertSeatId)
 			orchestrator.successFlow(ReservationPaymentFlow.SOLD_OUT_SEAT, concertSeat.id)
-
-			val deactivatedToken = queueService.deactivateToken(paymentCri.tokenUUID)
-			orchestrator.successFlow(ReservationPaymentFlow.DEACTIVATE_TOKEN, deactivatedToken.id)
 
 		} catch (e: Exception) {
 			log.error("결제 실패 및 롤백 시퀀스 실행 : ", e)

@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.common.resolver
 
 import kr.hhplus.be.server.common.component.TokenContext
-import kr.hhplus.be.server.domain.queue.model.Queue
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory
@@ -15,7 +14,7 @@ private const val QUEUE_TOKEN_COOKIE_NAME = "queue-access-token"
 class QueueArgumentResolver : HandlerMethodArgumentResolver {
 
 	override fun supportsParameter(parameter: MethodParameter): Boolean =
-		parameter.hasMethodAnnotation(QueueToken::class.java) && parameter.parameterType == Queue::class.java
+		parameter.hasMethodAnnotation(QueueToken::class.java)
 
 	override fun resolveArgument(
 		parameter: MethodParameter,

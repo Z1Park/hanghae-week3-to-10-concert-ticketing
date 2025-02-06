@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.reservation
 
 import kr.hhplus.be.server.TestContainerCleaner
 import kr.hhplus.be.server.common.component.ClockHolder
-import kr.hhplus.be.server.domain.queue.model.QueueActiveStatus
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
@@ -10,8 +9,6 @@ import kr.hhplus.be.server.infrastructure.concert.entity.ConcertEntity
 import kr.hhplus.be.server.infrastructure.concert.entity.ConcertScheduleEntity
 import kr.hhplus.be.server.infrastructure.concert.entity.ConcertSeatEntity
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository
-import kr.hhplus.be.server.infrastructure.queue.QueueJpaRepository
-import kr.hhplus.be.server.infrastructure.queue.entity.QueueJpaEntity
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository
 import kr.hhplus.be.server.infrastructure.reservation.entity.ReservationEntity
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
@@ -36,7 +33,6 @@ class ReservationFacadeServiceConcurrencyTest(
 	@Autowired private val sut: ReservationFacadeService,
 	@Autowired private val userJpaRepository: UserJpaRepository,
 	@Autowired private val reservationJpaRepository: ReservationJpaRepository,
-	@Autowired private val queueJpaRepository: QueueJpaRepository,
 	@Autowired private val concertJpaRepository: ConcertJpaRepository,
 	@Autowired private val concertScheduleJpaRepository: ConcertScheduleJpaRepository,
 	@Autowired private val concertSeatJpaRepository: ConcertSeatJpaRepository,
@@ -73,8 +69,6 @@ class ReservationFacadeServiceConcurrencyTest(
 		reservationJpaRepository.save(reservation)
 
 		val tokenUUID = "myTokenUUID"
-		val token = QueueJpaEntity(userUUID, tokenUUID, QueueActiveStatus.ACTIVATED, testTime.plusDays(1))
-		queueJpaRepository.save(token)
 
 		val cri1 = PaymentCri.Create(userUUID, tokenUUID, reservation.id)
 		val cri2 = PaymentCri.Create(userUUID, tokenUUID, reservation.id)

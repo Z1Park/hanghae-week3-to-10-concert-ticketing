@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.queue
+package kr.hhplus.be.server.domain.token
 
 data class QueueWaitingInfo(
 	val myWaitingOrder: Long,

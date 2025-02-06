@@ -2,7 +2,6 @@ package kr.hhplus.be.server.domain.reservation
 
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentService
-import kr.hhplus.be.server.domain.queue.QueueService
 import kr.hhplus.be.server.domain.user.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -14,8 +13,7 @@ class ReservationPaymentOrchestrator(
 	private val reservationService: ReservationService,
 	private val userService: UserService,
 	private val concertService: ConcertService,
-	private val paymentService: PaymentService,
-	private val queueService: QueueService
+	private val paymentService: PaymentService
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
@@ -49,7 +47,6 @@ class ReservationPaymentOrchestrator(
 			ReservationPaymentFlow.CREATE_PAYMENT -> data.paymentId = id
 			ReservationPaymentFlow.SOLD_OUT_RESERVATION -> data.reservationId = id
 			ReservationPaymentFlow.SOLD_OUT_SEAT -> data.seatId = id
-			ReservationPaymentFlow.DEACTIVATE_TOKEN -> data.tokenId = id
 		}
 	}
 
@@ -68,7 +65,6 @@ class ReservationPaymentOrchestrator(
 	private fun rollbackFlow(currentFlow: ReservationPaymentFlow) {
 		val data = outbox.get()
 		when (currentFlow) {
-			ReservationPaymentFlow.DEACTIVATE_TOKEN -> queueService.rollbackDeactivateToken(data.tokenId)
 			ReservationPaymentFlow.SOLD_OUT_SEAT -> concertService.rollbackSoldOutedConcertSeat(data.seatId, data.expiredAt)
 			ReservationPaymentFlow.SOLD_OUT_RESERVATION -> reservationService.rollbackReservation(data.reservationId, data.expiredAt)
 			ReservationPaymentFlow.CREATE_PAYMENT -> paymentService.rollbackPayment(data.paymentId)
@@ -92,6 +88,5 @@ enum class ReservationPaymentFlow(val description: String) {
 	CREATE_PAYMENT("결제 생성"),
 	SOLD_OUT_RESERVATION("예약 매진 처리"),
 	SOLD_OUT_SEAT("좌석 매진 처리"),
-	DEACTIVATE_TOKEN("토큰 비활성화"),
 	;
 }

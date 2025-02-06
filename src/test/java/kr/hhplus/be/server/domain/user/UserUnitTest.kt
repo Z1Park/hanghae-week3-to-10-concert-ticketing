@@ -2,9 +2,9 @@ package kr.hhplus.be.server.domain.user
 
 import io.mockk.every
 import io.mockk.mockkObject
+import kr.hhplus.be.server.KSelect.Companion.field
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.KSelect.Companion.field
 import kr.hhplus.be.server.domain.user.model.PointHistory
 import kr.hhplus.be.server.domain.user.model.PointHistoryType
 import kr.hhplus.be.server.domain.user.model.User
