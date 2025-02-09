@@ -47,20 +47,9 @@ class TokenService(
 	fun activateTokens() {
 		val waitingTokens = tokenRepository.getWaitingTokenRange(ACTIVATE_COUNT_PER_SEC.minus(1L))
 
-		val successTokens = waitingTokens.filter { token ->
-			runCatching {
-				tokenRepository.createActiveToken(token, ACTIVE_TOKEN_TIME_TO_LIVE_SECONDS)
-			}.isSuccess
-		}
+		tokenRepository.createActiveTokens(waitingTokens, ACTIVE_TOKEN_TIME_TO_LIVE_SECONDS)
 
-		if (successTokens.size == waitingTokens.size) {
-			tokenRepository.removeWaitingTokenRankRange(successTokens.size.toLong() - 1)
-			return
-		}
-
-		successTokens.forEach {
-			runCatching { tokenRepository.removeWaitingToken(it) }.getOrNull()
-		}
+		tokenRepository.removeWaitingTokenRankRange(waitingTokens.size.toLong() - 1L)
 	}
 
 	fun validateWaitingToken(tokenUUID: String) {

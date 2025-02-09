@@ -34,8 +34,9 @@ class TokenRepositoryImpl(
 		zSetOperations.add(WAITING_TOKEN_KEY, tokenUUID, score)
 	}
 
-	override fun createActiveToken(tokenUUID: String, timeoutSeconds: Long) {
-		valueOperations.set(tokenUUID, ACTIVE_TOKEN_VALUE, timeoutSeconds, TIME_UNIT)
+	override fun createActiveTokens(tokenUUIDs: List<String>, timeoutSeconds: Long) {
+		val tokens = tokenUUIDs.associateWith { ACTIVE_TOKEN_VALUE }
+		valueOperations.multiSet(tokens)
 	}
 
 	override fun removeWaitingToken(tokenUUID: String) {

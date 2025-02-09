@@ -12,7 +12,7 @@ interface TokenRepository {
 
 	fun createWaitingToken(tokenUUID: String, score: Double)
 
-	fun createActiveToken(tokenUUID: String, timeoutSeconds: Long)
+	fun createActiveTokens(tokenUUIDs: List<String>, timeoutSeconds: Long)
 
 	fun removeWaitingToken(tokenUUID: String)
 
