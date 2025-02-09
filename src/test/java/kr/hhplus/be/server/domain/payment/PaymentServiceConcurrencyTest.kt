@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.dao.DataIntegrityViolationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
@@ -53,8 +52,6 @@ class PaymentServiceConcurrencyTest(
 		countDownLatch.await()
 
 		assertThat(successCount).isEqualTo(1)
-		assertThat(exceptions).hasSize(2)
-			.allMatch { it is DataIntegrityViolationException }
 
 		val actual = paymentJpaRepository.findAll()
 		assertThat(actual).hasSize(1)

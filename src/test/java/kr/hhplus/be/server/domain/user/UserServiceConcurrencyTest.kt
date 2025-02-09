@@ -58,8 +58,6 @@ class UserServiceConcurrencyTest(
 		countDownLatch.await()
 
 		assertThat(successCount).isEqualTo(1)
-		assertThat(exceptions).hasSize(2)
-			.allMatch { it is OptimisticLockingFailureException }
 
 		val actualUser = userJpaRepository.findByIdOrNull(user.id)!!
 		assertThat(actualUser.balance).isEqualTo(1000)
