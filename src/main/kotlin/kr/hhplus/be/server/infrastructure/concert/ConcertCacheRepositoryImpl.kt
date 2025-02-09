@@ -45,8 +45,11 @@ class ConcertCacheRepositoryImpl(
 		val concertEntity = ConcertEntity(concert)
 		val value = toStringValue(concertEntity)
 
-		redisTemplate.delete(CONCERT_CACHE_KEY)
 		hashOperations.put(CONCERT_CACHE_KEY, CONCERT_CACHE_HASH_PREFIX + key, value)
 		redisTemplate.expire(CONCERT_CACHE_KEY, timeToLiveSeconds, TimeUnit.SECONDS)
+	}
+
+	override fun deleteCacheConcert() {
+		redisTemplate.delete(CONCERT_CACHE_KEY)
 	}
 }

@@ -9,4 +9,6 @@ interface ConcertCacheRepository {
 	fun findAllCacheConcerts(): List<Concert>
 
 	fun saveCacheConcert(concert: Concert, key: String, timeToLiveSeconds: Long)
+
+	fun deleteCacheConcert()
 }

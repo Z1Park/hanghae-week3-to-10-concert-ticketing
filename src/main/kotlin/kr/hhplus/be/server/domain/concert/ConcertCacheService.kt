@@ -26,6 +26,7 @@ class ConcertCacheService(
 		val expiredAt = currentTime.plusDays(1).withHour(0).withMinute(10).withSecond(0)
 		val timeToLiveSeconds = Duration.between(currentTime, expiredAt).toSeconds()
 
+		concertCacheRepository.deleteCacheConcert()
 		topConcertInfos.forEach {
 			concertCacheRepository.saveCacheConcert(it.toConcert(), it.hashCode().toString(), timeToLiveSeconds)
 		}
