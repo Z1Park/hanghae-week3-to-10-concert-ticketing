@@ -24,10 +24,10 @@ class ConcertFacadeService(
 	fun getConcertSeatInformation(concertId: Long, concertScheduleId: Long): List<ConcertInfo.Seat> =
 		concertService.getConcertSeat(concertId, concertScheduleId)
 
-	fun getYesterdayTopConcertInfo(): List<ConcertInfo.ConcertDto> {
+	fun getYesterdayTopConcertInfo(): List<ConcertInfo.ConcertDto>? {
 		val topConcertInfos = concertCacheService.getTopConcertInfo()
 
-		if (topConcertInfos.isEmpty()) {
+		if (topConcertInfos == null) {
 			updateYesterdayTopConcertInfo()
 			return concertCacheService.getTopConcertInfo()
 		}

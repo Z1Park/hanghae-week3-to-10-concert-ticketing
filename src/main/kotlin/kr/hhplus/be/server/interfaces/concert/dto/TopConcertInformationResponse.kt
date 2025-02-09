@@ -3,11 +3,11 @@ package kr.hhplus.be.server.interfaces.concert.dto
 import kr.hhplus.be.server.domain.concert.ConcertInfo
 
 data class TopConcertInformationResponse(
-	val concerts: List<TopConcertInformationDto>
+	val concerts: List<TopConcertInformationDto>?
 ) {
 	companion object {
-		fun from(concertInfos: List<ConcertInfo.ConcertDto>): TopConcertInformationResponse =
-			TopConcertInformationResponse(concertInfos.map { TopConcertInformationDto.from(it) })
+		fun from(concertInfos: List<ConcertInfo.ConcertDto>?): TopConcertInformationResponse =
+			TopConcertInformationResponse(concertInfos?.map { TopConcertInformationDto.from(it) })
 	}
 }
 

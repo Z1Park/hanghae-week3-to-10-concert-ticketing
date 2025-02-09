@@ -36,6 +36,8 @@ class ConcertCacheRepositoryImpl(
 		init(objectMapper)
 	}
 
+	override fun isExistCacheConcerts(): Boolean = redisTemplate.hasKey(CONCERT_CACHE_KEY)
+
 	override fun findAllCacheConcerts(): List<Concert> =
 		hashOperations.entries(CONCERT_CACHE_KEY).map { toConcertEntity(it.value).toDomain() }
 

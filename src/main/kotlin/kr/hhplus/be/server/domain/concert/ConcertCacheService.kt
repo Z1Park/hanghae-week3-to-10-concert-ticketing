@@ -9,7 +9,11 @@ class ConcertCacheService(
 	private val concertCacheRepository: ConcertCacheRepository
 ) {
 
-	fun getTopConcertInfo(): List<ConcertInfo.ConcertDto> {
+	fun getTopConcertInfo(): List<ConcertInfo.ConcertDto>? {
+		if (!concertCacheRepository.isExistCacheConcerts()) {
+			return null
+		}
+
 		val topConcerts = concertCacheRepository.findAllCacheConcerts()
 		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }
 	}
