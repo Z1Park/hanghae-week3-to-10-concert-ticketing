@@ -72,5 +72,5 @@ CREATE TABLE `payment` (
     `updated_at` TIMESTAMP(6) NOT NULL,
     INDEX idx_user_id (user_id),
     INDEX idx_reservation_id (reservation_id),
-    UNIQUE (user_id, reservation_id)
+    UNIQUE unq_user_id_reservation_id (user_id, reservation_id)
 );

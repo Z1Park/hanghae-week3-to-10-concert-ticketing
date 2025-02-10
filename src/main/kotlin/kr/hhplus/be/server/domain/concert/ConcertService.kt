@@ -99,10 +99,7 @@ class ConcertService(
 	}
 
 	fun getTopConcertInfo(countByConcertId: Map<Long, Int>): List<ConcertInfo.ConcertDto> {
-		val topConcertIds = countByConcertId.entries
-			.sortedByDescending { it.value }
-			.take(20)
-			.map { it.key }
+		val topConcertIds = countByConcertId.entries.map { it.key }
 
 		val topConcerts = concertRepository.findAllConcertById(topConcertIds)
 		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }

@@ -15,6 +15,7 @@ class ReservationService(
 ) {
 	companion object {
 		private const val RESERVATION_KEY = "reservation:"
+		private const val CACHE_SIZE = 20L
 	}
 
 	fun getReservationForPay(reservationId: Long, clockHolder: ClockHolder): Reservation {
@@ -66,7 +67,7 @@ class ReservationService(
 		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
 		val start = end.minusDays(1)
 
-		val yesterdayReservations = reservationRepository.findAllByCreatedAtBetween(start, end)
+		val yesterdayReservations = reservationRepository.findTopReservationsByCreatedAtBetween(start, end, CACHE_SIZE)
 		return yesterdayReservations.groupBy { it.concertId }.mapValues { it.value.size }
 	}
 }

@@ -9,7 +9,8 @@ import java.time.LocalDateTime
 
 @Repository
 class ReservationRepositoryImpl(
-	private val reservationJpaRepository: ReservationJpaRepository
+	private val reservationJpaRepository: ReservationJpaRepository,
+	private val reservationCustomRepository: ReservationCustomRepository
 ) : ReservationRepository {
 
 	override fun findById(reservationId: Long): Reservation? =
@@ -18,13 +19,13 @@ class ReservationRepositoryImpl(
 	override fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation? =
 		reservationJpaRepository.findByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)?.toDomain()
 
+	override fun findTopReservationsByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime, limit: Long): List<Reservation> =
+		reservationCustomRepository.findConcertIdByCount(start, end, limit).map { it.toDomain() }
+
 	override fun save(reservation: Reservation): Reservation =
 		reservationJpaRepository.save(ReservationEntity(reservation)).toDomain()
 
 	override fun delete(reservation: Reservation) {
 		reservationJpaRepository.delete(ReservationEntity(reservation))
 	}
-
-	override fun findAllByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime): List<Reservation> =
-		reservationJpaRepository.findAllByCreatedAtBetween(start, end).map { it.toDomain() }
 }

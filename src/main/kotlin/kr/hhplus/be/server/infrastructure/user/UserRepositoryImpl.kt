@@ -7,8 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepositoryImpl(
-	private val userJpaRepository: UserJpaRepository,
-	private val pointHistoryJpaRepository: PointHistoryJpaRepository
+	private val userJpaRepository: UserJpaRepository
 ) : UserRepository {
 
 	override fun findById(userId: Long): User? =

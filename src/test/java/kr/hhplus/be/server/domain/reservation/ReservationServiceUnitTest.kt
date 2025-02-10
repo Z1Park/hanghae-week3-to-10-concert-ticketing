@@ -232,6 +232,6 @@ class ReservationServiceUnitTest {
 		//then
 		val expectedEnd = testTime.toLocalDate().atStartOfDay()
 		val expectedStart = expectedEnd.minusDays(1)
-		verify(reservationRepository).findAllByCreatedAtBetween(expectedStart, expectedEnd)
+		verify(reservationRepository).findTopReservationsByCreatedAtBetween(expectedStart, expectedEnd, 20)
 	}
 }
