@@ -6,7 +6,8 @@ import kr.hhplus.be.server.common.component.TokenContext
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.resolver.QueueToken
-import kr.hhplus.be.server.domain.queue.QueueService
+import kr.hhplus.be.server.domain.token.TokenService
+import kr.hhplus.be.server.domain.token.model.TokenActiveStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.HandlerInterceptor
@@ -15,7 +16,7 @@ const val QUEUE_TOKEN_NAME = "queue-access-token"
 
 @Component
 class QueueTokenInterceptor(
-	private val queueService: QueueService
+	private val tokenService: TokenService
 ) : HandlerInterceptor {
 
 	override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
@@ -27,7 +28,10 @@ class QueueTokenInterceptor(
 		}
 
 		val requiredType = handler.getMethodAnnotation(QueueToken::class.java)!!.requiredType
-		queueService.validateQueueToken(queueToken, requiredType)
+		when (requiredType) {
+			TokenActiveStatus.WAITING -> tokenService.validateWaitingToken(queueToken)
+			TokenActiveStatus.ACTIVATED -> tokenService.validateActiveToken(queueToken)
+		}
 
 		TokenContext.setQueueToken(queueToken)
 		return true

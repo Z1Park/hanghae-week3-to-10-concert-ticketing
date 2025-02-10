@@ -30,7 +30,7 @@ class PaymentServiceIntegrationTest(
 		val actual = sut.pay(command)
 
 		//then
-		val set = paymentJpaRepository.findByIdOrNull(actual.id)!!
+		val set = paymentJpaRepository.findByIdOrNull(actual.id)!!.toDomain()
 		assertThat(set.price).isEqualTo(1000)
 		assertThat(set.userId).isEqualTo(1L)
 		assertThat(set.reservationId).isEqualTo(3L)

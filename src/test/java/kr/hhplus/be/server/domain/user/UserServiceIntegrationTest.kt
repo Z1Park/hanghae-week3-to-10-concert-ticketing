@@ -1,8 +1,11 @@
 package kr.hhplus.be.server.domain.user
 
 import kr.hhplus.be.server.TestContainerCleaner
+import kr.hhplus.be.server.domain.user.model.PointHistoryType
 import kr.hhplus.be.server.infrastructure.user.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.user.UserJpaRepository
+import kr.hhplus.be.server.infrastructure.user.entity.PointHistoryEntity
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -27,7 +30,7 @@ class UserServiceIntegrationTest(
 	fun `유저 토큰 발급 시, 새로 발급된 uuid가 유저에 저장되고 그 값이 반환된다`() {
 		// given
 		val userUUID = "myUserUUID"
-		val user = User("김항해", "before", 0)
+		val user = UserEntity("김항해", "before", 0)
 		userJpaRepository.save(user)
 
 		// when
@@ -47,10 +50,10 @@ class UserServiceIntegrationTest(
 		val userUUID = "myUserUUID"
 		val chargeAmount = 850
 
-		val user = User("김항해", userUUID, 400)
+		val user = UserEntity("김항해", userUUID, 400)
 		userJpaRepository.save(user)
 
-		val pointHistory = PointHistory(PointHistoryType.CHARGE, 400, user.id)
+		val pointHistory = PointHistoryEntity(PointHistoryType.CHARGE, 400, user.id)
 		pointHistoryJpaRepository.save(pointHistory)
 
 		// when
@@ -72,10 +75,10 @@ class UserServiceIntegrationTest(
 		val userUUID = "myUserUUID"
 		val useAmount = 850
 
-		val user = User("김항해", userUUID, 1400)
+		val user = UserEntity("김항해", userUUID, 1400)
 		userJpaRepository.save(user)
 
-		val pointHistory = PointHistory(PointHistoryType.CHARGE, 1400, user.id)
+		val pointHistory = PointHistoryEntity(PointHistoryType.CHARGE, 1400, user.id)
 		pointHistoryJpaRepository.save(pointHistory)
 
 		// when
@@ -95,10 +98,10 @@ class UserServiceIntegrationTest(
 	@Test
 	fun `사용 요청 롤백 시, 유저와 포인트 히스토리를 조회 후 잔액을 증가시키고 해당 포인트 히스토리를 삭제한다`() {
 		// given
-		val user = User("김항해", "muUserUUID", 900)
+		val user = UserEntity("김항해", "muUserUUID", 900)
 		userJpaRepository.save(user)
 
-		val usePointHistory = PointHistory(PointHistoryType.USE, 1100, user.id)
+		val usePointHistory = PointHistoryEntity(PointHistoryType.USE, 1100, user.id)
 		pointHistoryJpaRepository.save(usePointHistory)
 
 		// when

@@ -1,14 +1,14 @@
 package kr.hhplus.be.server.infrastructure.user
 
-import jakarta.persistence.LockModeType
-import kr.hhplus.be.server.domain.user.User
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Lock
 
-interface UserJpaRepository : JpaRepository<User, Long> {
+interface UserJpaRepository : JpaRepository<UserEntity, Long> {
 
-	fun findByUserUUID(uuid: String): User?
+	@EntityGraph(attributePaths = ["pointHistories"])
+	fun findWithPointHistoriesById(id: Long): UserEntity?
 
-	@Lock(LockModeType.OPTIMISTIC)
-	fun findForUpdateByUserUUID(uuid: String): User?
+	@EntityGraph(attributePaths = ["pointHistories"])
+	fun findWithPointHistoriesByUserUUID(uuid: String): UserEntity?
 }

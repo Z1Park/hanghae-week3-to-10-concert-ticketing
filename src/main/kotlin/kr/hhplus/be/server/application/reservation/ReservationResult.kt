@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.reservation
 
-import kr.hhplus.be.server.domain.reservation.Reservation
+import kr.hhplus.be.server.domain.reservation.model.Reservation
 import java.time.LocalDateTime
 
 data class ReservationResult(

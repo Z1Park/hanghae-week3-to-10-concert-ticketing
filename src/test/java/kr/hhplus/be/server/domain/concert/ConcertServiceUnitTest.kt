@@ -1,8 +1,11 @@
 package kr.hhplus.be.server.domain.concert
 
+import kr.hhplus.be.server.KSelect.Companion.field
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -41,9 +44,9 @@ class ConcertServiceUnitTest {
 		verify(concertRepository).findAllConcert(false)
 
 		assertThat(actual).hasSize(3)
-			.anyMatch { it.concertId == 1L && it.title == "콘서트1" && it.provider == "가수1" }
-			.anyMatch { it.concertId == 2L && it.title == "콘서트2" && it.provider == "그룹1" }
-			.anyMatch { it.concertId == 3L && it.title == "콘서트3" && it.provider == "가수2" }
+			.anyMatch { it.id == 1L && it.title == "콘서트1" && it.provider == "가수1" }
+			.anyMatch { it.id == 2L && it.title == "콘서트2" && it.provider == "그룹1" }
+			.anyMatch { it.id == 3L && it.title == "콘서트3" && it.provider == "가수2" }
 	}
 
 	@Test
@@ -222,6 +225,39 @@ class ConcertServiceUnitTest {
 	}
 
 	@Test
+	fun `좌석 선점 롤백 시, 원래의 reservedUntill 값을 원래의 데이터로 복구한다`() {
+		// given
+		val seatId = 12L
+		val testTime = LocalDateTime.of(2025, 2, 5, 11, 25, 31)
+		val expiredAt = testTime.minusSeconds(3)
+		val seat = Instancio.of(ConcertSeat::class.java)
+			.set(field(ConcertSeat::id), seatId)
+			.set(field(ConcertSeat::reservedUntil), testTime.plusMinutes(5))
+			.create()
+
+		`when`(concertRepository.findSeat(seatId))
+			.then { seat }
+
+		// when
+		sut.rollbackPreoccupyConcertSeat(seatId, expiredAt)
+
+		//then
+		assertThat(seat.reservedUntil).isEqualTo(expiredAt)
+	}
+
+	@Test
+	fun `좌석 선점 롤백 시, 잘못된 Id로 조회하면 CustomException이 발생한다`() {
+		// given
+		val expiredAt = LocalDateTime.of(2025, 2, 5, 11, 23, 59)
+
+		// when then
+		assertThatThrownBy { sut.rollbackPreoccupyConcertSeat(1L, expiredAt) }
+			.isInstanceOf(CustomException::class.java)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
 	fun `좌석 매진 요청 시, 좌석의 만료 기한을 null로 바꾼다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
@@ -294,6 +330,25 @@ class ConcertServiceUnitTest {
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
+	fun `인기 콘서트 정보 조회 시, 여러 개의 콘서트id 중 value가 가장 큰 20개에 대한 정보만 조회한다`() {
+		// given
+		val countByConcertId = hashMapOf<Long, Int>()
+		for (i in 1L until 30L) {
+			countByConcertId[i] = i.toInt()
+		}
+
+		// when
+		sut.getTopConcertInfo(countByConcertId)
+
+		//then
+		val expected = mutableListOf<Long>()
+		for (i in 29L downTo 10L) {
+			expected.add(i)
+		}
+		verify(concertRepository).findAllConcertById(expected)
 	}
 
 	private fun createConcert(

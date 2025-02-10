@@ -1,18 +1,24 @@
 package kr.hhplus.be.server.domain.concert
 
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
 import java.time.LocalDateTime
 
 class ConcertInfo {
 
 	data class ConcertDto(
-		val concertId: Long,
+		val id: Long,
 		val title: String,
-		val provider: String
+		val provider: String,
+		val finished: Boolean
 	) {
 		companion object {
-			fun from(concert: kr.hhplus.be.server.domain.concert.Concert): ConcertDto =
-				ConcertDto(concert.id, concert.title, concert.provider)
+			fun from(concert: Concert): ConcertDto =
+				ConcertDto(concert.id, concert.title, concert.provider, concert.finished)
 		}
+
+		fun toConcert(): Concert = Concert(title, provider, finished)
 	}
 
 	data class Schedule(
@@ -44,14 +50,20 @@ class ConcertInfo {
 	data class ReservedSeat(
 		val seatId: Long,
 		val price: Int,
-		val expiredAt: LocalDateTime
+		val expiredAt: LocalDateTime,
+		val originExpiredAt: LocalDateTime?
 	) {
 		companion object {
-			fun of(concertSeat: ConcertSeat, expiredAt: LocalDateTime): ReservedSeat =
+			fun of(
+				concertSeat: ConcertSeat,
+				expiredAt: LocalDateTime,
+				originExpiredAt: LocalDateTime?
+			): ReservedSeat =
 				ReservedSeat(
 					concertSeat.id,
 					concertSeat.price,
-					expiredAt
+					expiredAt,
+					originExpiredAt
 				)
 		}
 	}

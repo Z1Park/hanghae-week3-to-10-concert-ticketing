@@ -5,6 +5,7 @@ import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.redis.DistributedLock
+import kr.hhplus.be.server.domain.reservation.model.Reservation
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -13,7 +14,8 @@ class ReservationService(
 	private val reservationRepository: ReservationRepository
 ) {
 	companion object {
-		private const val RESERVATION_KEY = "seatReservation:"
+		private const val RESERVATION_KEY = "reservation:"
+		private const val CACHE_SIZE = 20L
 	}
 
 	fun getReservationForPay(reservationId: Long, clockHolder: ClockHolder): Reservation {
@@ -27,7 +29,6 @@ class ReservationService(
 		return reservation
 	}
 
-	@DistributedLock(prefix = RESERVATION_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder): Reservation {
 		val seatReservation = reservationRepository.findByScheduleIdAndSeatId(command.concertScheduleId, command.concertSeatId)
@@ -43,6 +44,7 @@ class ReservationService(
 		return reservationRepository.save(reservation)
 	}
 
+	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")
 	@Transactional
 	fun makeSoldOut(reservationId: Long) {
 		val reservation = reservationRepository.findById(reservationId)
@@ -59,5 +61,13 @@ class ReservationService(
 
 		reservation.rollbackSoldOut(expiredAt)
 		reservationRepository.save(reservation)
+	}
+
+	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): Map<Long, Int> {
+		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
+		val start = end.minusDays(1)
+
+		val yesterdayReservations = reservationRepository.findTopReservationsByCreatedAtBetween(start, end, CACHE_SIZE)
+		return yesterdayReservations.groupBy { it.concertId }.mapValues { it.value.size }
 	}
 }

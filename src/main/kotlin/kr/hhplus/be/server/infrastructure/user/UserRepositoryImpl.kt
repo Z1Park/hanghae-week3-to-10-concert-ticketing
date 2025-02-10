@@ -1,29 +1,21 @@
 package kr.hhplus.be.server.infrastructure.user
 
-import kr.hhplus.be.server.domain.user.PointHistory
-import kr.hhplus.be.server.domain.user.User
 import kr.hhplus.be.server.domain.user.UserRepository
-import org.springframework.data.repository.findByIdOrNull
+import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepositoryImpl(
-	private val userJpaRepository: UserJpaRepository,
-	private val pointHistoryJpaRepository: PointHistoryJpaRepository
+	private val userJpaRepository: UserJpaRepository
 ) : UserRepository {
 
-	override fun findById(userId: Long): User? = userJpaRepository.findByIdOrNull(userId)
+	override fun findById(userId: Long): User? =
+		userJpaRepository.findWithPointHistoriesById(userId)?.toDomain()
 
-	override fun findByUuid(uuid: String): User? = userJpaRepository.findByUserUUID(uuid)
+	override fun findByUuid(uuid: String): User? =
+		userJpaRepository.findWithPointHistoriesByUserUUID(uuid)?.toDomain()
 
-	override fun findByUuidForUpdate(uuid: String): User? = userJpaRepository.findForUpdateByUserUUID(uuid)
-	override fun findPointHistoryById(pointHistoryId: Long): PointHistory? =
-		pointHistoryJpaRepository.findByIdOrNull(pointHistoryId)
-
-	override fun save(user: User): User = userJpaRepository.save(user)
-
-	override fun save(pointHistory: PointHistory): PointHistory = pointHistoryJpaRepository.save(pointHistory)
-	override fun delete(pointHistory: PointHistory) {
-		pointHistoryJpaRepository.delete(pointHistory)
-	}
+	override fun save(user: User): User =
+		userJpaRepository.save(UserEntity(user)).toDomain()
 }

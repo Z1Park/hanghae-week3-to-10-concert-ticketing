@@ -1,8 +1,9 @@
 package kr.hhplus.be.server.domain.reservation
 
+import kr.hhplus.be.server.KSelect.Companion.field
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.KSelect.Companion.field
+import kr.hhplus.be.server.domain.reservation.model.Reservation
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -218,5 +219,19 @@ class ReservationServiceUnitTest {
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+	}
+
+	@Test
+	fun `전날 예약 조회 시, testTime의 전날의 00시 00분 00초부터 testTime의 00시 00분 00초까지를 조회한다`() {
+		// given
+		val testTime = LocalDateTime.of(2025, 2, 7, 3, 58, 3)
+
+		// when
+		sut.getYesterdayReservationConcertCounts() { testTime }
+
+		//then
+		val expectedEnd = testTime.toLocalDate().atStartOfDay()
+		val expectedStart = expectedEnd.minusDays(1)
+		verify(reservationRepository).findTopReservationsByCreatedAtBetween(expectedStart, expectedEnd, 20)
 	}
 }

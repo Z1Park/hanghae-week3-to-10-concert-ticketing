@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.payment
 
+import kr.hhplus.be.server.domain.payment.model.Payment
+
 class PaymentCommand {
 
 	data class Create(

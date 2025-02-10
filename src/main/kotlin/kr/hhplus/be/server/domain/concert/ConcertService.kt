@@ -5,6 +5,7 @@ import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.redis.DistributedLock
+import kr.hhplus.be.server.domain.concert.model.ConcertSeat
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -62,11 +63,21 @@ class ConcertService(
 			throw CustomException(ErrorCode.ALREADY_RESERVED, "concertSeatId=$concertSeat.id")
 		}
 
+		val originExpiredAt = concertSeat.reservedUntil
 		val expiredAt = currentTime.plusMinutes(RESERVATION_TIME_MINUTES)
 		concertSeat.reserveUntil(expiredAt)
 		concertRepository.save(concertSeat)
 
-		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt)
+		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt, originExpiredAt)
+	}
+
+	@Transactional
+	fun rollbackPreoccupyConcertSeat(seatId: Long, expiredAt: LocalDateTime?) {
+		val concertSeat = concertRepository.findSeat(seatId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${seatId}")
+
+		concertSeat.rollbackReservedUntil(expiredAt)
+		concertRepository.save(concertSeat)
 	}
 
 	@Transactional
@@ -85,5 +96,12 @@ class ConcertService(
 
 		concertSeat.rollbackSoldOut(expiredAt)
 		concertRepository.save(concertSeat)
+	}
+
+	fun getTopConcertInfo(countByConcertId: Map<Long, Int>): List<ConcertInfo.ConcertDto> {
+		val topConcertIds = countByConcertId.entries.map { it.key }
+
+		val topConcerts = concertRepository.findAllConcertById(topConcertIds)
+		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }
 	}
 }

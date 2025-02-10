@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.user
 
-import kr.hhplus.be.server.domain.user.PointHistory
+import kr.hhplus.be.server.infrastructure.user.entity.PointHistoryEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface PointHistoryJpaRepository : JpaRepository<PointHistory, Long> {
+interface PointHistoryJpaRepository : JpaRepository<PointHistoryEntity, Long> {
 }

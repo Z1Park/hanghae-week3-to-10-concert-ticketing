@@ -2,7 +2,7 @@ package kr.hhplus.be.server.domain.reservation
 
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentService
-import kr.hhplus.be.server.domain.queue.QueueService
+import kr.hhplus.be.server.domain.token.TokenService
 import kr.hhplus.be.server.domain.user.UserService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -32,7 +32,7 @@ class ReservationPaymentOrchestratorUnitTest {
 	private lateinit var paymentService: PaymentService
 
 	@Mock
-	private lateinit var queueService: QueueService
+	private lateinit var tokenService: TokenService
 
 	@Test
 	fun `오케스트레이션 동작 테스트 - USE_POINT`() {
@@ -100,23 +100,6 @@ class ReservationPaymentOrchestratorUnitTest {
 
 		//then
 		verify(concertService).rollbackSoldOutedConcertSeat(seatId, testTime)
-	}
-
-	@Test
-	fun `오케스트레이션 동작 테스트 - DEACTIVATE_TOKEN`() {
-		// given
-		val userId = 123L
-		val testTime = LocalDateTime.of(2025, 1, 16, 11, 39, 40)
-		sut.setupInitialRollbackInfo(userId, testTime)
-
-		val tokenId = 11L
-		sut.successFlow(ReservationPaymentFlow.DEACTIVATE_TOKEN, tokenId)
-
-		// when
-		sut.rollbackAll()
-
-		//then
-		verify(queueService).rollbackDeactivateToken(tokenId)
 	}
 
 	@Test
