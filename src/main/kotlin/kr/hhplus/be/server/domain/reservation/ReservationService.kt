@@ -63,11 +63,11 @@ class ReservationService(
 		reservationRepository.save(reservation)
 	}
 
-	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): Map<Long, Int> {
+	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): List<Long> {
 		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
 		val start = end.minusDays(1)
 
 		val yesterdayReservations = reservationRepository.findTopReservationsByCreatedAtBetween(start, end, CACHE_SIZE)
-		return yesterdayReservations.groupBy { it.concertId }.mapValues { it.value.size }
+		return yesterdayReservations.map { it.concertId }
 	}
 }

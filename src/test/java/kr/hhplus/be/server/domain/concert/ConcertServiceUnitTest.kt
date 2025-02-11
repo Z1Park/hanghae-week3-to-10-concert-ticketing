@@ -331,26 +331,7 @@ class ConcertServiceUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
-
-	@Test
-	fun `인기 콘서트 정보 조회 시, 여러 개의 콘서트id 중 value가 가장 큰 20개에 대한 정보만 조회한다`() {
-		// given
-		val countByConcertId = hashMapOf<Long, Int>()
-		for (i in 1L until 30L) {
-			countByConcertId[i] = i.toInt()
-		}
-
-		// when
-		sut.getTopConcertInfo(countByConcertId)
-
-		//then
-		val expected = mutableListOf<Long>()
-		for (i in 29L downTo 10L) {
-			expected.add(i)
-		}
-		verify(concertRepository).findAllConcertById(expected)
-	}
-
+	
 	private fun createConcert(
 		id: Long,
 		title: String = "김항해",
