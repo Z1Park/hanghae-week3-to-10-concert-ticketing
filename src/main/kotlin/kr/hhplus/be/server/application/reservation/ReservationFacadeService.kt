@@ -1,16 +1,17 @@
 package kr.hhplus.be.server.application.reservation
 
+import kr.hhplus.be.server.application.event.DataPlatformSendEvent
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
 import kr.hhplus.be.server.domain.payment.PaymentService
-import kr.hhplus.be.server.domain.token.TokenService
 import kr.hhplus.be.server.domain.reservation.ReservationCommand
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentFlow
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentOrchestrator
 import kr.hhplus.be.server.domain.reservation.ReservationService
 import kr.hhplus.be.server.domain.user.UserService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 
 @Service
@@ -19,9 +20,9 @@ class ReservationFacadeService(
 	private val userService: UserService,
 	private val concertService: ConcertService,
 	private val paymentService: PaymentService,
-	private val tokenService: TokenService,
 	private val orchestrator: ReservationPaymentOrchestrator,
-	private val clockHolder: ClockHolder
+	private val clockHolder: ClockHolder,
+	private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
@@ -50,6 +51,9 @@ class ReservationFacadeService(
 		}
 	}
 
+	/**
+	 * 오케스트레이터 패턴을 통해 결제 흐름 제어
+	 */
 	fun payReservation(paymentCri: PaymentCri.Create) {
 		val user = userService.getByUuid(paymentCri.userUUID)
 		val reservation = reservationService.getReservationForPay(paymentCri.reservationId, clockHolder)
@@ -71,6 +75,9 @@ class ReservationFacadeService(
 			val concertSeat = concertService.makeSoldOutConcertSeat(reservation.concertSeatId)
 			orchestrator.successFlow(ReservationPaymentFlow.SOLD_OUT_SEAT, concertSeat.id)
 
+			applicationEventPublisher.publishEvent(
+				DataPlatformSendEvent(concertSeat.id, reservation.id, pay.id)
+			)
 		} catch (e: Exception) {
 			log.error("결제 실패 및 롤백 시퀀스 실행 : ", e)
 
