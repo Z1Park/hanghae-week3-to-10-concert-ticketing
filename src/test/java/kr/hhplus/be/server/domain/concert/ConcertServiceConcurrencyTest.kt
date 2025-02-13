@@ -46,7 +46,7 @@ class ConcertServiceConcurrencyTest(
 		val seat = ConcertSeatEntity(11, 900, schedule.id, testTime.minusMinutes(5))
 		concertSeatJpaRepository.save(seat)
 
-		val command = ConcertCommand.Reserve(concert.id, schedule.id, seat.id)
+		val command = ConcertCommand.Reserve(concert.id, schedule.id, seat.id, 1L)
 
 		val repeat = 5
 		val countDownLatch = CountDownLatch(repeat)

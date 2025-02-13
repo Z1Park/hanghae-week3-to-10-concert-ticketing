@@ -1,11 +1,13 @@
 package kr.hhplus.be.server.domain.concert
 
 import jakarta.transaction.Transactional
+import kr.hhplus.be.server.application.event.ConcertSeatPreoccupySuccessEvent
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.redis.DistributedLock
 import kr.hhplus.be.server.domain.concert.model.ConcertSeat
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -13,7 +15,8 @@ const val RESERVATION_TIME_MINUTES = 5L
 
 @Service
 class ConcertService(
-	private val concertRepository: ConcertRepository
+	private val concertRepository: ConcertRepository,
+	private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 	companion object {
 		private const val SEAT_PREEMPTION_KEY = "seatPreemption:"
@@ -43,7 +46,7 @@ class ConcertService(
 
 	@DistributedLock(prefix = SEAT_PREEMPTION_KEY, key = "#command.concertSeatId")
 	@Transactional
-	fun preoccupyConcertSeat(command: ConcertCommand.Reserve, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
+	fun preoccupyConcertSeat(command: ConcertCommand.Reserve, clockHolder: ClockHolder) {
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${command.concertSeatId}")
 		val concertSchedule = concertRepository.findSchedule(command.concertScheduleId)
@@ -68,7 +71,17 @@ class ConcertService(
 		concertSeat.reserveUntil(expiredAt)
 		concertRepository.save(concertSeat)
 
-		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt, originExpiredAt)
+		applicationEventPublisher.publishEvent(
+			ConcertSeatPreoccupySuccessEvent(
+				concertSeat.price,
+				command.userId,
+				concert.id,
+				concertSchedule.id,
+				concertSeat.id,
+				expiredAt,
+				originExpiredAt
+			)
+		)
 	}
 
 	@Transactional

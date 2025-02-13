@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.reservation.PaymentCri
 import kr.hhplus.be.server.application.reservation.ReservationFacadeService
 import kr.hhplus.be.server.common.resolver.QueueToken
 import kr.hhplus.be.server.common.resolver.UserToken
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "예약")
@@ -17,17 +18,17 @@ class ReservationController(
 
 	@Operation(
 		summary = "예약 요청 API",
-		description = "콘서트 좌석을 예약",
+		description = "콘서트 좌석을 예약, 성공 시 200 OK / 실패 시 CustomException 발생",
 	)
 	@PostMapping("")
 	fun reserveConcertSeat(
 		@UserToken userUUID: String,
 		@QueueToken tokenUUID: String,
 		@RequestBody reservationRequest: ConcertReservationRequest
-	): ConcertReservationResponse {
-		val reservationResult = reservationFacadeService.reserveConcertSeat(reservationRequest.toReservationCriCreate(userUUID))
+	): ResponseEntity<Unit> {
+		reservationFacadeService.reserveConcertSeat(reservationRequest.toReservationCriCreate(userUUID))
 
-		return ConcertReservationResponse.from(reservationResult)
+		return ResponseEntity.ok().build()
 	}
 
 	@Operation(

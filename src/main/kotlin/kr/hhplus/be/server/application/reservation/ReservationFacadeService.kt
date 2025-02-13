@@ -5,7 +5,6 @@ import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
 import kr.hhplus.be.server.domain.payment.PaymentService
-import kr.hhplus.be.server.domain.reservation.ReservationCommand
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentFlow
 import kr.hhplus.be.server.domain.reservation.ReservationPaymentOrchestrator
 import kr.hhplus.be.server.domain.reservation.ReservationService
@@ -26,29 +25,15 @@ class ReservationFacadeService(
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
-	fun reserveConcertSeat(requestCri: ReservationCri.Create): ReservationResult {
+	/**
+	 * 코레오그래피 패턴을 통해 예약 로직 수행
+	 * preoccupyConcertSeat 호출 -> ConcertSeatPreoccupySuccessEvent 수행
+	 * ConcertSeatPreoccupySuccessEvent 실패 시 보상 트랜잭션 ->  ReservationConcertSeatFailEvent 수행
+	 */
+	fun reserveConcertSeat(requestCri: ReservationCri.Create) {
 		val user = userService.getByUuid(requestCri.userUUID)
 
-		val reservedSeatInfo = concertService.preoccupyConcertSeat(requestCri.toConcertCommandTotal(), clockHolder)
-
-		val command = ReservationCommand.Create(
-			reservedSeatInfo.price,
-			user.id,
-			requestCri.concertId,
-			requestCri.concertScheduleId,
-			reservedSeatInfo.seatId,
-			reservedSeatInfo.expiredAt
-		)
-		try {
-			val reservation = reservationService.reserve(command, clockHolder)
-
-			return ReservationResult.from(reservation)
-		} catch (e: Exception) {
-			log.error("예약 실패 및 롤백 시퀀스 실행 : ", e)
-
-			concertService.rollbackPreoccupyConcertSeat(reservedSeatInfo.seatId, reservedSeatInfo.originExpiredAt)
-			throw e
-		}
+		concertService.preoccupyConcertSeat(requestCri.toConcertCommandTotal(user.id), clockHolder)
 	}
 
 	/**

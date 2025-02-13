@@ -16,6 +16,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.context.ApplicationEventPublisher
 import java.time.LocalDateTime
 
 @ExtendWith(MockitoExtension::class)
@@ -26,6 +27,9 @@ class ConcertServiceUnitTest {
 
 	@Mock
 	private lateinit var concertRepository: ConcertRepository
+
+	@Mock
+	private lateinit var applicationEventPublisher: ApplicationEventPublisher
 
 	@Test
 	fun `콘서트 정보 조회 시, 현재 진행 중인 콘서트 정보를 조회하고 그 결과를 반환한다`() {
@@ -135,7 +139,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 5분 후까지 해당 좌석을 선점한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L, 10101L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = Instancio.of(ConcertSeat::class.java)
@@ -150,13 +154,10 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when
-		val actual = sut.preoccupyConcertSeat(command) { testTime }
+		sut.preoccupyConcertSeat(command) { testTime }
 
 		//then
 		val expiredAt = testTime.plusMinutes(5)
-		assertThat(actual.price).isEqualTo(2500)
-		assertThat(actual.seatId).isEqualTo(3L)
-		assertThat(actual.expiredAt).isEqualTo(expiredAt)
 		assertThat(seat.reservedUntil).isEqualTo(expiredAt)
 	}
 
@@ -164,7 +165,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L, 43902L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 5L)
 		val seat = createSeat(3L, 2L, 123)
@@ -184,7 +185,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 서로 연관되지 않은 일정-좌석으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L, 4389L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = createSeat(3L, 7L, 123)
@@ -204,7 +205,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 이미 예약된 좌석이라면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L)
+		val command = ConcertCommand.Reserve(1L, 2L, 3L, 84539L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = Instancio.of(ConcertSeat::class.java)
@@ -331,7 +332,7 @@ class ConcertServiceUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 	}
-	
+
 	private fun createConcert(
 		id: Long,
 		title: String = "김항해",
