@@ -67,7 +67,6 @@ class ReservationService(
 		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
 		val start = end.minusDays(1)
 
-		val yesterdayReservations = reservationRepository.findTopReservationsByCreatedAtBetween(start, end, CACHE_SIZE)
-		return yesterdayReservations.map { it.concertId }
+		return reservationRepository.findTopReservationConcertIdsByCreatedAtBetween(start, end, CACHE_SIZE)
 	}
 }
