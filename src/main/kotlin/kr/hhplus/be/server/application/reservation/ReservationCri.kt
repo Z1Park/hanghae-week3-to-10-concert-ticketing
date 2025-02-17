@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.reservation
 
-import kr.hhplus.be.server.domain.concert.ConcertCommand
+import kr.hhplus.be.server.domain.reservation.ReservationCommand
 
 class ReservationCri {
 
@@ -10,7 +10,7 @@ class ReservationCri {
 		val concertScheduleId: Long,
 		val concertSeatId: Long,
 	) {
-		fun toConcertCommandTotal(userId: Long): ConcertCommand.Reserve =
-			ConcertCommand.Reserve(concertId, concertScheduleId, concertSeatId, userId)
+		fun toReservationCommandCreate(): ReservationCommand.Create =
+			ReservationCommand.Create(userUUID, concertId, concertScheduleId, concertSeatId)
 	}
 }

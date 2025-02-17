@@ -131,7 +131,7 @@ class ConcertServiceIntegrationTest(
 		val seat4 = ConcertSeatEntity(15, 18000, schedule2.id, testTime.minusMinutes(1))
 		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4))
 
-		val query = ConcertCommand.Reserve(concert.id, schedule2.id, seat3.id, 1L)
+		val query = ConcertCommand.Preoccupy(concert.id, schedule2.id, seat3.id)
 
 		// when
 		sut.preoccupyConcertSeat(query) { testTime }

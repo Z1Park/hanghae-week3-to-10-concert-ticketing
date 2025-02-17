@@ -139,7 +139,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 5분 후까지 해당 좌석을 선점한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L, 10101L)
+		val command = ConcertCommand.Preoccupy(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = Instancio.of(ConcertSeat::class.java)
@@ -165,7 +165,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 서로 연관되지 않은 콘서트-일정으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L, 43902L)
+		val command = ConcertCommand.Preoccupy(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 5L)
 		val seat = createSeat(3L, 2L, 123)
@@ -185,7 +185,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 서로 연관되지 않은 일정-좌석으로 요청하면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L, 4389L)
+		val command = ConcertCommand.Preoccupy(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = createSeat(3L, 7L, 123)
@@ -205,7 +205,7 @@ class ConcertServiceUnitTest {
 	fun `좌석 선점 시, 이미 예약된 좌석이라면 CustomException이 발생한다`() {
 		// given
 		val testTime = LocalDateTime.of(2025, 1, 16, 1, 5, 36)
-		val command = ConcertCommand.Reserve(1L, 2L, 3L, 84539L)
+		val command = ConcertCommand.Preoccupy(1L, 2L, 3L)
 		val concert = createConcert(1L)
 		val schedule = createSchedule(2L, 1L)
 		val seat = Instancio.of(ConcertSeat::class.java)

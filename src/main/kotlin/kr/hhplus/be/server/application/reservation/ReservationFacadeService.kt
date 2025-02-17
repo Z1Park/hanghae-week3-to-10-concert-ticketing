@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.reservation
 
-import kr.hhplus.be.server.application.event.DataPlatformSendEvent
+import kr.hhplus.be.server.application.event.DataPlatformSendPaymentEvent
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.domain.concert.ConcertService
 import kr.hhplus.be.server.domain.payment.PaymentCommand
@@ -31,9 +31,7 @@ class ReservationFacadeService(
 	 * ConcertSeatPreoccupySuccessEvent 실패 시 보상 트랜잭션 ->  ReservationConcertSeatFailEvent 수행
 	 */
 	fun reserveConcertSeat(requestCri: ReservationCri.Create) {
-		val user = userService.getByUuid(requestCri.userUUID)
-
-		concertService.preoccupyConcertSeat(requestCri.toConcertCommandTotal(user.id), clockHolder)
+		reservationService.reserve(requestCri.toReservationCommandCreate(), clockHolder)
 	}
 
 	/**
@@ -61,7 +59,7 @@ class ReservationFacadeService(
 			orchestrator.successFlow(ReservationPaymentFlow.SOLD_OUT_SEAT, concertSeat.id)
 
 			applicationEventPublisher.publishEvent(
-				DataPlatformSendEvent(concertSeat.id, reservation.id, pay.id)
+				DataPlatformSendPaymentEvent(concertSeat.id, reservation.id, pay.id)
 			)
 		} catch (e: Exception) {
 			log.error("결제 실패 및 롤백 시퀀스 실행 : ", e)
