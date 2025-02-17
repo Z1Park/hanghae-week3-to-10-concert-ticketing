@@ -36,8 +36,8 @@ class ConcertFacadeService(
 	}
 
 	fun updateYesterdayTopConcertInfo() {
-		val reservationCountByConcertId = reservationService.getYesterdayReservationConcertCounts(clockHolder)
-		val topConcertInfos = concertService.getTopConcertInfo(reservationCountByConcertId)
+		val topConcertIds = reservationService.getYesterdayReservationConcertCounts(clockHolder)
+		val topConcertInfos = concertService.getConcertInfos(topConcertIds)
 		concertCacheService.saveTopConcertInfo(topConcertInfos, clockHolder)
 	}
 }

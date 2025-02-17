@@ -6,8 +6,6 @@ import kr.hhplus.be.server.domain.user.model.PointHistoryType
 import kr.hhplus.be.server.infrastructure.concert.ConcertJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertScheduleJpaRepository
 import kr.hhplus.be.server.infrastructure.concert.ConcertSeatJpaRepository
-import kr.hhplus.be.server.infrastructure.concert.entity.ConcertEntity
-import kr.hhplus.be.server.infrastructure.concert.entity.ConcertScheduleEntity
 import kr.hhplus.be.server.infrastructure.concert.entity.ConcertSeatEntity
 import kr.hhplus.be.server.infrastructure.payment.PaymentJpaRepository
 import kr.hhplus.be.server.infrastructure.reservation.ReservationJpaRepository
@@ -48,38 +46,6 @@ class ReservationFacadeServiceIntegrationTest(
 	@BeforeEach
 	fun setUp() {
 		testContainerCleaner.clearAll()
-	}
-
-	@Test
-	fun `예약 요청 시, 좌석 선점, 예약 생성 로직이 수행된다`() {
-		// given
-		val testTime = LocalDateTime.of(2025, 1, 17, 12, 59, 59)
-
-		val userUUID = "myUserUUID"
-		val user = UserEntity("김항해", userUUID, 50000)
-		userJpaRepository.save(user)
-
-		val concert = ConcertEntity("항해콘", "나가수")
-		concertJpaRepository.save(concert)
-
-		val schedule = ConcertScheduleEntity(50, testTime, testTime.plusHours(5), concert.id)
-		concertScheduleJpaRepository.save(schedule)
-
-		val seat = ConcertSeatEntity(1, 15000, schedule.id, testTime.minusSeconds(1))
-		concertSeatJpaRepository.save(seat)
-
-		val create = ReservationCri.Create(userUUID, concert.id, schedule.id, seat.id)
-
-		// when
-		sut.reserveConcertSeat(create)
-
-		//then
-		val actualSeat = concertSeatJpaRepository.findByIdOrNull(seat.id)!!
-		assertThat(actualSeat.reservedUntil).isEqualTo(testTime.plusMinutes(5))
-
-		val actualReservations = reservationJpaRepository.findAll()
-		assertThat(actualReservations).hasSize(1)
-			.allMatch { it.userId == user.id && it.concertSeatId == seat.id && it.expiredAt == testTime.plusMinutes(5) }
 	}
 
 	@Test

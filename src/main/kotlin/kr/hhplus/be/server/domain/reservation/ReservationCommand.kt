@@ -1,20 +1,16 @@
 package kr.hhplus.be.server.domain.reservation
 
-import kr.hhplus.be.server.domain.reservation.model.Reservation
-import java.time.LocalDateTime
+import kr.hhplus.be.server.domain.concert.ConcertCommand
 
 class ReservationCommand {
 
 	data class Create(
-		val price: Int,
-		val userId: Long,
+		val userUUID: String,
 		val concertId: Long,
 		val concertScheduleId: Long,
-		val concertSeatId: Long,
-		val expiredAt: LocalDateTime
+		val concertSeatId: Long
 	) {
-
-		fun toReservation(): Reservation =
-			Reservation(expiredAt, price, userId, concertId, concertScheduleId, concertSeatId)
+		fun toPreoccupyCommand(): ConcertCommand.Preoccupy =
+			ConcertCommand.Preoccupy(concertId, concertScheduleId, concertSeatId)
 	}
 }

@@ -19,8 +19,8 @@ class ReservationRepositoryImpl(
 	override fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation? =
 		reservationJpaRepository.findByConcertScheduleIdAndConcertSeatId(concertScheduleId, concertSeatId)?.toDomain()
 
-	override fun findTopReservationsByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime, limit: Long): List<Reservation> =
-		reservationCustomRepository.findConcertIdByCount(start, end, limit).map { it.toDomain() }
+	override fun findTopReservationConcertIdsByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime, limit: Long): List<Long> =
+		reservationCustomRepository.findConcertIdByCount(start, end, limit).map { it.concertId }
 
 	override fun save(reservation: Reservation): Reservation =
 		reservationJpaRepository.save(ReservationEntity(reservation)).toDomain()

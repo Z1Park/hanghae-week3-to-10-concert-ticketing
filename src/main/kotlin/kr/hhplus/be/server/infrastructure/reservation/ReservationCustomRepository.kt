@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.infrastructure.reservation
 
+import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import kr.hhplus.be.server.infrastructure.reservation.entity.QReservationEntity.reservationEntity
-import kr.hhplus.be.server.infrastructure.reservation.entity.ReservationEntity
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -17,11 +17,20 @@ class ReservationCustomRepository(
 		start: LocalDateTime,
 		end: LocalDateTime,
 		limit: Long
-	): List<ReservationEntity> {
+	): List<ConcertCountProjection> {
 		return queryFactory
-			.select(reservationEntity)
+			.select(
+				Projections.constructor(
+					ConcertCountProjection::class.java,
+					reservationEntity.concertId,
+					reservationEntity.concertId.count()
+				)
+			)
 			.from(reservationEntity)
-			.where(reservationEntity.createdAt.between(start, end))
+			.where(
+				reservationEntity.createdAt.between(start, end)
+					.and(reservationEntity.expiredAt.isNull)
+			)
 			.groupBy(reservationEntity.concertId)
 			.orderBy(reservationEntity.concertId.count().desc())
 			.limit(limit)

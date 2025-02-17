@@ -9,7 +9,7 @@ interface ReservationRepository {
 
 	fun findByScheduleIdAndSeatId(concertScheduleId: Long, concertSeatId: Long): Reservation?
 
-	fun findTopReservationsByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime, limit: Long): List<Reservation>
+	fun findTopReservationConcertIdsByCreatedAtBetween(start: LocalDateTime, end: LocalDateTime, limit: Long): List<Long>
 
 	fun save(reservation: Reservation): Reservation
 

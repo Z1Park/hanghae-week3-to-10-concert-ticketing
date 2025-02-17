@@ -43,7 +43,7 @@ class ConcertService(
 
 	@DistributedLock(prefix = SEAT_PREEMPTION_KEY, key = "#command.concertSeatId")
 	@Transactional
-	fun preoccupyConcertSeat(command: ConcertCommand.Reserve, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
+	fun preoccupyConcertSeat(command: ConcertCommand.Preoccupy, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${command.concertSeatId}")
 		val concertSchedule = concertRepository.findSchedule(command.concertScheduleId)
@@ -68,7 +68,7 @@ class ConcertService(
 		concertSeat.reserveUntil(expiredAt)
 		concertRepository.save(concertSeat)
 
-		return ConcertInfo.ReservedSeat.of(concertSeat, expiredAt, originExpiredAt)
+		return ConcertInfo.ReservedSeat.of(concert, concertSchedule, concertSeat, expiredAt, originExpiredAt)
 	}
 
 	@Transactional
@@ -98,10 +98,8 @@ class ConcertService(
 		concertRepository.save(concertSeat)
 	}
 
-	fun getTopConcertInfo(countByConcertId: Map<Long, Int>): List<ConcertInfo.ConcertDto> {
-		val topConcertIds = countByConcertId.entries.map { it.key }
-
-		val topConcerts = concertRepository.findAllConcertById(topConcertIds)
+	fun getConcertInfos(concertIds: List<Long>): List<ConcertInfo.ConcertDto> {
+		val topConcerts = concertRepository.findAllConcertById(concertIds)
 		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }
 	}
 }

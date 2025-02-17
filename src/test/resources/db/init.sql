@@ -60,6 +60,8 @@ CREATE TABLE `reservation` (
     `created_at` TIMESTAMP(6) NOT NULL,
     `updated_at` TIMESTAMP(6) NOT NULL,
     INDEX idx_user_id (user_id),
+    INDEX idx_concert_id (concert_id),
+    INDEX idx_concert_schedule_id (concert_schedule_id),
     INDEX idx_concert_seat_id (concert_seat_id)
 );
 

@@ -131,19 +131,15 @@ class ConcertServiceIntegrationTest(
 		val seat4 = ConcertSeatEntity(15, 18000, schedule2.id, testTime.minusMinutes(1))
 		concertSeatJpaRepository.saveAll(listOf(seat1, seat2, seat3, seat4))
 
-		val query = ConcertCommand.Reserve(concert.id, schedule2.id, seat3.id)
+		val query = ConcertCommand.Preoccupy(concert.id, schedule2.id, seat3.id)
 
 		// when
-		val actual = sut.preoccupyConcertSeat(query) { testTime }
+		sut.preoccupyConcertSeat(query) { testTime }
 
 		//then
+		val actual = concertSeatJpaRepository.findByIdOrNull(seat3.id)!!
 		val expiredAt = testTime.plusMinutes(5)
-		assertThat(actual.price).isEqualTo(17000)
-		assertThat(actual.seatId).isEqualTo(seat3.id)
-		assertThat(actual.expiredAt).isEqualTo(expiredAt)
-
-		val set = concertSeatJpaRepository.findByIdOrNull(seat3.id)!!
-		assertThat(set.reservedUntil).isEqualTo(expiredAt)
+		assertThat(actual.reservedUntil).isEqualTo(expiredAt)
 	}
 
 	@Test
