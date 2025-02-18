@@ -40,6 +40,13 @@ class ReservationService(
 		return reservation
 	}
 
+	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): List<Long> {
+		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
+		val start = end.minusDays(1)
+
+		return reservationRepository.findTopReservationConcertIdsByCreatedAtBetween(start, end, CACHE_SIZE)
+	}
+
 	@Transactional
 	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder) {
 		val concertSeatReservationInfo = concertApiClient.concertApiPreoccupyConcert(command.toPreoccupyCommand())
@@ -93,6 +100,7 @@ class ReservationService(
 		reservationRepository.save(reservation)
 	}
 
+	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")
 	@Transactional
 	fun rollbackReservation(reservationId: Long, expiredAt: LocalDateTime?) {
 		val reservation = reservationRepository.findById(reservationId)
@@ -100,12 +108,5 @@ class ReservationService(
 
 		reservation.rollbackSoldOut(expiredAt)
 		reservationRepository.save(reservation)
-	}
-
-	fun getYesterdayReservationConcertCounts(clockHolder: ClockHolder): List<Long> {
-		val end = clockHolder.getCurrentTime().toLocalDate().atStartOfDay()
-		val start = end.minusDays(1)
-
-		return reservationRepository.findTopReservationConcertIdsByCreatedAtBetween(start, end, CACHE_SIZE)
 	}
 }

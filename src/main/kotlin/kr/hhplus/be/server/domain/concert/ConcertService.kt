@@ -16,7 +16,7 @@ class ConcertService(
 	private val concertRepository: ConcertRepository
 ) {
 	companion object {
-		private const val SEAT_PREEMPTION_KEY = "seatPreemption:"
+		private const val CONCERT_SEAT_KEY = "seatPreemption:"
 	}
 
 	fun getConcert(): List<ConcertInfo.ConcertDto> {
@@ -41,7 +41,12 @@ class ConcertService(
 		return concertSeats.map { ConcertInfo.Seat.of(concertId, it) }
 	}
 
-	@DistributedLock(prefix = SEAT_PREEMPTION_KEY, key = "#command.concertSeatId")
+	fun getConcertInfos(concertIds: List<Long>): List<ConcertInfo.ConcertDto> {
+		val topConcerts = concertRepository.findAllConcertById(concertIds)
+		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }
+	}
+
+	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#command.concertSeatId")
 	@Transactional
 	fun preoccupyConcertSeat(command: ConcertCommand.Preoccupy, clockHolder: ClockHolder): ConcertInfo.ReservedSeat {
 		val concertSeat = concertRepository.findSeat(command.concertSeatId)
@@ -71,15 +76,17 @@ class ConcertService(
 		return ConcertInfo.ReservedSeat.of(concert, concertSchedule, concertSeat, expiredAt, originExpiredAt)
 	}
 
+	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#concertSeatId")
 	@Transactional
-	fun rollbackPreoccupyConcertSeat(seatId: Long, expiredAt: LocalDateTime?) {
-		val concertSeat = concertRepository.findSeat(seatId)
-			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${seatId}")
+	fun rollbackPreoccupyConcertSeat(concertSeatId: Long, expiredAt: LocalDateTime?) {
+		val concertSeat = concertRepository.findSeat(concertSeatId)
+			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${concertSeatId}")
 
 		concertSeat.rollbackReservedUntil(expiredAt)
 		concertRepository.save(concertSeat)
 	}
 
+	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#concertSeatId")
 	@Transactional
 	fun makeSoldOutConcertSeat(concertSeatId: Long): ConcertSeat {
 		val concertSeat = concertRepository.findSeat(concertSeatId)
@@ -89,6 +96,7 @@ class ConcertService(
 		return concertRepository.save(concertSeat)
 	}
 
+	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#concertSeatId")
 	@Transactional
 	fun rollbackSoldOutedConcertSeat(concertSeatId: Long, expiredAt: LocalDateTime?) {
 		val concertSeat = concertRepository.findSeat(concertSeatId)
@@ -96,10 +104,5 @@ class ConcertService(
 
 		concertSeat.rollbackSoldOut(expiredAt)
 		concertRepository.save(concertSeat)
-	}
-
-	fun getConcertInfos(concertIds: List<Long>): List<ConcertInfo.ConcertDto> {
-		val topConcerts = concertRepository.findAllConcertById(concertIds)
-		return topConcerts.map { ConcertInfo.ConcertDto.from(it) }
 	}
 }
