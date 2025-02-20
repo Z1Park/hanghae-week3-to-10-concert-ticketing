@@ -18,6 +18,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.context.ApplicationEventPublisher
 
 @ExtendWith(MockitoExtension::class)
 class UserServiceUnitTest {
@@ -27,6 +28,9 @@ class UserServiceUnitTest {
 
 	@Mock
 	private lateinit var userRepository: UserRepository
+
+	@Mock
+	private lateinit var applicationEventPublisher: ApplicationEventPublisher
 
 	@Test
 	fun `uuid를 통해 유저 조회 시, userRepository의 getByUuid 메서드를 호출한다`() {
@@ -167,7 +171,7 @@ class UserServiceUnitTest {
 		every { PointHistory.use(user.id, useAmount) } returns pointHistory
 
 		// when
-		sut.use(userUUID, useAmount)
+		sut.use("thisistraceid", userUUID, useAmount)
 
 		//then
 		verify(userRepository).save(user)
@@ -185,7 +189,7 @@ class UserServiceUnitTest {
 			.then { null }
 
 		// when then
-		assertThatThrownBy { sut.use(userUUID, useAmount) }
+		assertThatThrownBy { sut.use("thisistraceid", userUUID, useAmount) }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)

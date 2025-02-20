@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.reservation
 
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.application.concert.ConcertApiClient
+import kr.hhplus.be.server.application.event.ReservationConfirmEvent
 import kr.hhplus.be.server.application.event.ReservationFailEvent
 import kr.hhplus.be.server.application.event.ReservationSuccessEvent
 import kr.hhplus.be.server.application.user.UserApiClient
@@ -80,7 +81,6 @@ class ReservationService(
 					reservation.id,
 					userInfo.userId,
 					concertSeatReservationInfo.price,
-					reservation.createdAt
 				)
 			)
 		} catch (e: Exception) {
@@ -91,12 +91,16 @@ class ReservationService(
 
 	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")
 	@Transactional
-	fun makeSoldOut(reservationId: Long) {
+	fun confirmReservation(reservationId: Long, traceId: String) {
 		val reservation = reservationRepository.findById(reservationId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "reservationId=$reservationId")
 
-		reservation.soldOut()
+		val originExpiredAt = reservation.expiredAt
+
+		reservation.confirm()
 		reservationRepository.save(reservation)
+
+		applicationEventPublisher.publishEvent(ReservationConfirmEvent(traceId, reservationId, originExpiredAt))
 	}
 
 	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")

@@ -27,6 +27,20 @@ class ConcertOutboxService(
 		concertOutboxRepository.save(concertOutboxMessage)
 	}
 
+	fun saveConcertSeatSoldOutInfo(payload: ConcertSeatSoldOutPayload) {
+		val concertOutboxMessage = ConcertOutboxMessage(
+			payload.traceId,
+			OutboxEventType.RESERVE,
+			OutboxEventStatus.PROCESSED, // API 호출로 이루어지는 동작이기 때문에 PROCESSED로 저장
+			null,
+			null,
+			payload.concertSeatId,
+			null,
+			payload.originExpiredAt
+		)
+		concertOutboxRepository.save(concertOutboxMessage)
+	}
+
 	fun processRollbackConcertPreoccupy(traceId: String): ConcertPreoccupyPayload {
 		val outboxMessage = concertOutboxRepository.findByTraceId(traceId)
 		require(outboxMessage != null) {
@@ -36,6 +50,7 @@ class ConcertOutboxService(
 			)
 		}
 		outboxMessage.updateStatusRollbacked()
+		concertOutboxRepository.save(outboxMessage)
 
 		return ConcertPreoccupyPayload(
 			outboxMessage.traceId,
@@ -43,6 +58,24 @@ class ConcertOutboxService(
 			outboxMessage.concertScheduleId,
 			outboxMessage.concertSeatId,
 			outboxMessage.expiredAt,
+			outboxMessage.originExpiredAt
+		)
+	}
+
+	fun processRollbackConcertSeatSoldOut(traceId: String): ConcertSeatSoldOutPayload {
+		val outboxMessage = concertOutboxRepository.findByTraceId(traceId)
+		require(outboxMessage != null) {
+			throw CustomException(
+				ErrorCode.ENTITY_NOT_FOUND,
+				"아웃박스 데이터 저장이 제대로 이루어지지 않았습니다. traceId=${traceId}"
+			)
+		}
+		outboxMessage.updateStatusRollbacked()
+		concertOutboxRepository.save(outboxMessage)
+
+		return ConcertSeatSoldOutPayload(
+			outboxMessage.traceId,
+			outboxMessage.concertSeatId,
 			outboxMessage.originExpiredAt
 		)
 	}

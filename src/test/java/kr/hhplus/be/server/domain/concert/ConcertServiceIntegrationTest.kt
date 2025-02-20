@@ -134,7 +134,7 @@ class ConcertServiceIntegrationTest(
 		val query = ConcertCommand.Preoccupy(concert.id, schedule2.id, seat3.id)
 
 		// when
-		sut.preoccupyConcertSeat(query) { testTime }
+		sut.preoccupyConcertSeat(query, "thisistraceid") { testTime }
 
 		//then
 		val actual = concertSeatJpaRepository.findByIdOrNull(seat3.id)!!
@@ -165,7 +165,7 @@ class ConcertServiceIntegrationTest(
 		concertSeatJpaRepository.save(seat)
 
 		// when
-		sut.makeSoldOutConcertSeat(seat.id)
+		sut.makeSoldOutConcertSeat(seat.id, "thisistraceid")
 
 		//then
 		val actual = concertSeatJpaRepository.findByIdOrNull(seat.id)!!

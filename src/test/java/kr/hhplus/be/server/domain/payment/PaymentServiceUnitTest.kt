@@ -13,6 +13,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.context.ApplicationEventPublisher
 
 @ExtendWith(MockitoExtension::class)
 class PaymentServiceUnitTest {
@@ -23,6 +24,9 @@ class PaymentServiceUnitTest {
 	@Mock
 	private lateinit var paymentRepository: PaymentRepository
 
+	@Mock
+	private lateinit var applicationEventPublisher: ApplicationEventPublisher
+
 	@Test
 	fun `결제 요청 시, 결제를 생성하고 저장하는 메서드를 호출한다`() {
 		// given
@@ -32,11 +36,13 @@ class PaymentServiceUnitTest {
 		val command = PaymentCommand.Create(price, userId, reservationId)
 		val payment = command.toPayment()
 
+		`when`(paymentRepository.save(command.toPayment()))
+			.then { payment }
 		`when`(paymentRepository.findByUserIdAndReservationId(userId, reservationId))
 			.then { null }
 
 		// when
-		sut.pay(command)
+		sut.pay(command, "thisistraceid")
 
 		//then
 		verify(paymentRepository).save(payment)
@@ -59,7 +65,7 @@ class PaymentServiceUnitTest {
 			.then { payment }
 
 		// when then
-		assertThatThrownBy { sut.pay(command) }
+		assertThatThrownBy { sut.pay(command, "thisistraceid") }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ALREADY_PAYED_RESERVATION)

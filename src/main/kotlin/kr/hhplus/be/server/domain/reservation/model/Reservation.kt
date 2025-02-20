@@ -23,7 +23,7 @@ class Reservation(
 		return expiredAt?.isBefore(currentTime) ?: false
 	}
 
-	fun soldOut() {
+	fun confirm() {
 		expiredAt = null
 	}
 

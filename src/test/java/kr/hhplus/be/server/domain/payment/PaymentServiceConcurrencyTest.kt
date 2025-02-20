@@ -39,7 +39,7 @@ class PaymentServiceConcurrencyTest(
 		for (i in 0 until repeat) {
 			executors.execute {
 				try {
-					sut.pay(cri)
+					sut.pay(cri, "thisistraceid")
 					successCount++
 				} catch (e: Exception) {
 					exceptions.add(e)

@@ -1,12 +1,12 @@
 package kr.hhplus.be.server.domain.concert
 
 import jakarta.transaction.Transactional
+import kr.hhplus.be.server.application.event.ConcertMakeSoldOutEvent
 import kr.hhplus.be.server.application.event.ConcertPreoccupySuccessEvent
 import kr.hhplus.be.server.common.component.ClockHolder
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.common.redis.DistributedLock
-import kr.hhplus.be.server.domain.concert.model.ConcertSeat
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -102,12 +102,21 @@ class ConcertService(
 
 	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#concertSeatId")
 	@Transactional
-	fun makeSoldOutConcertSeat(concertSeatId: Long): ConcertSeat {
+	fun makeSoldOutConcertSeat(concertSeatId: Long, traceId: String) {
 		val concertSeat = concertRepository.findSeat(concertSeatId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "concertSeatId=${concertSeatId}")
 
+		val originReservedUntil = concertSeat.reservedUntil
 		concertSeat.soldOut()
-		return concertRepository.save(concertSeat)
+		concertRepository.save(concertSeat)
+
+		applicationEventPublisher.publishEvent(
+			ConcertMakeSoldOutEvent(
+				traceId,
+				concertSeat.id,
+				originReservedUntil
+			)
+		)
 	}
 
 	@DistributedLock(prefix = CONCERT_SEAT_KEY, key = "#concertSeatId")

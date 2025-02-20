@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional
 import kr.hhplus.be.server.common.kafka.KafkaGroupIdConst.Companion.GROUP_CONCERT
 import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.DLQ_SUFFIX
 import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.TOPIC_ROLLBACK_CONCERT_PREOCCUPY
+import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.TOPIC_ROLLBACK_PAY_RESERVATION
 import kr.hhplus.be.server.domain.concert.ConcertOutboxService
 import kr.hhplus.be.server.domain.concert.ConcertService
 import org.slf4j.LoggerFactory
@@ -40,6 +41,28 @@ class ConcertConsumer(
 
 		val payload = concertOutboxService.processRollbackConcertPreoccupy(traceId)
 		concertService.rollbackPreoccupyConcertSeat(payload.concertSeatId, payload.originExpiredAt)
+
+		ack.acknowledge()
+	}
+
+	@RetryableTopic(
+		attempts = "4",
+		backoff = Backoff(delay = 100),
+		topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE,
+		dltTopicSuffix = DLQ_SUFFIX,
+		dltStrategy = DltStrategy.FAIL_ON_ERROR
+	)
+	@KafkaListener(
+		topics = [TOPIC_ROLLBACK_PAY_RESERVATION],
+		groupId = GROUP_CONCERT
+	)
+	@Transactional
+	fun listenRollbackConcertSeatSoldOut(@Payload traceId: String, ack: Acknowledgment) {
+		log.warn("좌석 매진 처리 롤백 시퀀스 수행 : traceId=$traceId")
+
+		val payload = concertOutboxService.processRollbackConcertSeatSoldOut(traceId)
+		concertService.rollbackSoldOutedConcertSeat(payload.concertSeatId, payload.originExpiredAt)
+
 		ack.acknowledge()
 	}
 }

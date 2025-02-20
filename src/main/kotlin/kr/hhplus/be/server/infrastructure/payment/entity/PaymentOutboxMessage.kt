@@ -38,4 +38,10 @@ class PaymentOutboxMessage(
 			eventStatus = OutboxEventStatus.PROCESSED
 		}
 	}
+
+	fun updateStatusRollbacked() {
+		if (eventStatus == OutboxEventStatus.PROCESSED) {
+			eventStatus = OutboxEventStatus.ROLLBACKED
+		}
+	}
 }

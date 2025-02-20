@@ -10,6 +10,7 @@ class KafkaTopicNameConst {
 	companion object {
 		const val TOPIC_ROLLBACK_CONCERT_PREOCCUPY = "kafka.message.concert.rollback.preoccupy"
 		const val TOPIC_SEND_RESERVATION_DATA = "kafka.message.reservation.send.data"
+		const val TOPIC_ROLLBACK_PAY_RESERVATION = "kafka.message.reservation.rollback.pay"
 		const val TOPIC_SEND_PAYMENT_DATA = "kafka.message.payment.send.data"
 
 		const val DLQ_SUFFIX = ".dlq"
@@ -17,7 +18,9 @@ class KafkaTopicNameConst {
 		// Topic에 따른 partition 수를 관리
 		val topics = mapOf(
 			Pair(TOPIC_ROLLBACK_CONCERT_PREOCCUPY, 3),
-			Pair(TOPIC_SEND_RESERVATION_DATA, 3)
+			Pair(TOPIC_SEND_RESERVATION_DATA, 3),
+			Pair(TOPIC_ROLLBACK_PAY_RESERVATION, 3),
+			Pair(TOPIC_SEND_PAYMENT_DATA, 3)
 		)
 	}
 }

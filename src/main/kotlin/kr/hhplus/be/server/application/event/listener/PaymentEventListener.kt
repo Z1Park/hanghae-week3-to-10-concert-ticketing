@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.event.listener
 
 import kr.hhplus.be.server.application.event.DataPlatformSendPaymentEvent
+import kr.hhplus.be.server.application.event.PaymentCreateSuccessEvent
 import kr.hhplus.be.server.domain.payment.PaymentMessageProducer
 import kr.hhplus.be.server.domain.payment.PaymentOutboxService
 import org.slf4j.LoggerFactory
@@ -14,6 +15,13 @@ class PaymentEventListener(
 	private val paymentMessageProducer: PaymentMessageProducer
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
+
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	fun savePaymentCreateInfoToOutbox(event: PaymentCreateSuccessEvent) {
+		log.debug("결제 생성 정보 outbox 저장")
+
+		paymentOutboxService.savePaymentCreateInfo(event.toPaymentCreatePayload())
+	}
 
 	/**
 	 * 결제 완료 이후 데이터 플랫폼으로 결제 내역 전송

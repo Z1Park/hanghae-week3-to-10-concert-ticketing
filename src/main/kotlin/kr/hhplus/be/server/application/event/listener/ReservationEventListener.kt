@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.event.listener
 
+import kr.hhplus.be.server.application.event.ReservationConfirmEvent
 import kr.hhplus.be.server.application.event.ReservationFailEvent
 import kr.hhplus.be.server.application.event.ReservationSuccessEvent
 import kr.hhplus.be.server.domain.reservation.ReservationMessageProducer
@@ -36,5 +37,12 @@ class ReservationEventListener(
 		log.warn("예약 실패 - 좌선 선점 내역 롤백 요청 메세지 발행 : event=$event")
 
 		reservationMessageProducer.sendRollbackPreoccupyConcertSeatMessage(event.traceId)
+	}
+
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	fun saveReservationConfirmInfoToOutbox(event: ReservationConfirmEvent) {
+		log.debug("예약 확정 정보 outbox 저장 : event=$event")
+
+		reservationOutboxService.saveReservationConfirmInfo(event.toReservationConfirmPayload())
 	}
 }
