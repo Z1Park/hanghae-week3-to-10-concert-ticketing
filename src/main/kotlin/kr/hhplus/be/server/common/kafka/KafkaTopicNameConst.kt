@@ -10,6 +10,7 @@ class KafkaTopicNameConst {
 	companion object {
 		const val TOPIC_ROLLBACK_CONCERT_PREOCCUPY = "kafka.message.concert.rollback.preoccupy"
 		const val TOPIC_SEND_RESERVATION_DATA = "kafka.message.reservation.send.data"
+		const val TOPIC_SEND_PAYMENT_DATA = "kafka.message.payment.send.data"
 
 		const val DLQ_SUFFIX = ".dlq"
 

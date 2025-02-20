@@ -3,6 +3,7 @@ package kr.hhplus.be.server.consumer
 import kr.hhplus.be.server.common.kafka.KafkaGroupIdConst
 import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.DLQ_SUFFIX
 import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.TOPIC_ROLLBACK_CONCERT_PREOCCUPY
+import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.TOPIC_SEND_PAYMENT_DATA
 import kr.hhplus.be.server.common.kafka.KafkaTopicNameConst.Companion.TOPIC_SEND_RESERVATION_DATA
 import kr.hhplus.be.server.domain.alarm.AlarmApiClient
 import org.slf4j.LoggerFactory
@@ -21,8 +22,9 @@ class DeadLetterConsumer(
 
 	@KafkaListener(
 		topics = [
-			TOPIC_SEND_RESERVATION_DATA + DLQ_SUFFIX,
 			TOPIC_ROLLBACK_CONCERT_PREOCCUPY + DLQ_SUFFIX,
+			TOPIC_SEND_RESERVATION_DATA + DLQ_SUFFIX,
+			TOPIC_SEND_PAYMENT_DATA + DLQ_SUFFIX,
 		],
 		groupId = KafkaGroupIdConst.GROUP_DLQ
 	)
@@ -47,6 +49,7 @@ class DeadLetterConsumer(
 			Timestamp: ${Instant.ofEpochMilli(timestamp)}
 		""".trimIndent()
 
+		log.error(message)
 		alarmApiClient.sendAlarm(message)
 		ack.acknowledge()
 	}
