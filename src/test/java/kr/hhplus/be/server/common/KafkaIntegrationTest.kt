@@ -16,7 +16,7 @@ class KafkaIntegrationTest(
 	private val countDownLatch = CountDownLatch(1)
 	private var receivedMessage: String = ""
 
-	@KafkaListener(groupId = "group1", topics = ["test-topic"])
+	@KafkaListener(groupId = "test", topics = ["test-topic"])
 	fun receive(message: String) {
 		receivedMessage = message
 		println("Kafka 테스트 메세지 수신 : message = ${message}")

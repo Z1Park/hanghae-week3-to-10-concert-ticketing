@@ -16,6 +16,6 @@ class ConcertApiClient(
 	private val clockHolder: ClockHolder
 ) {
 
-	fun concertApiPreoccupyConcert(command: ConcertCommand.Preoccupy): ConcertInfo.ReservedSeat =
-		concertService.preoccupyConcertSeat(command, clockHolder)
+	fun concertApiPreoccupyConcert(command: ConcertCommand.Preoccupy, traceId: String): ConcertInfo.ReservedSeat =
+		concertService.preoccupyConcertSeat(command, traceId, clockHolder)
 }

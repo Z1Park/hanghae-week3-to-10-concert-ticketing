@@ -48,8 +48,8 @@ class ReservationService(
 	}
 
 	@Transactional
-	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder) {
-		val concertSeatReservationInfo = concertApiClient.concertApiPreoccupyConcert(command.toPreoccupyCommand())
+	fun reserve(command: ReservationCommand.Create, traceId: String, clockHolder: ClockHolder) {
+		val concertSeatReservationInfo = concertApiClient.concertApiPreoccupyConcert(command.toPreoccupyCommand(), traceId)
 
 		try {
 			val userInfo = userApiClient.userApiGetUserByUUID(command.userUUID)
@@ -75,18 +75,17 @@ class ReservationService(
 
 			applicationEventPublisher.publishEvent(
 				ReservationSuccessEvent(
+					traceId,
 					concertSeatReservationInfo.concertSeatId,
-					reservation.id
+					reservation.id,
+					userInfo.userId,
+					concertSeatReservationInfo.price,
+					reservation.createdAt
 				)
 			)
 		} catch (e: Exception) {
 			log.error("예약 실패 및 롤백 시퀀스 실행 : ", e)
-			applicationEventPublisher.publishEvent(
-				ReservationFailEvent(
-					concertSeatReservationInfo.concertSeatId,
-					concertSeatReservationInfo.originExpiredAt
-				)
-			)
+			applicationEventPublisher.publishEvent(ReservationFailEvent(traceId))
 		}
 	}
 

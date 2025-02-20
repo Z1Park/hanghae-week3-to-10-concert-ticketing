@@ -1,14 +1,12 @@
 package kr.hhplus.be.server.application.event.listener
 
 import kr.hhplus.be.server.application.event.DataPlatformSendPaymentEvent
-import kr.hhplus.be.server.domain.external.DataPlatformApiClient
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 
 @Component
-class DataPlatformSendEventListener(
-	private val dataPlatformApiClient: DataPlatformApiClient
+class PaymentEventListener(
 ) {
 
 	/**
