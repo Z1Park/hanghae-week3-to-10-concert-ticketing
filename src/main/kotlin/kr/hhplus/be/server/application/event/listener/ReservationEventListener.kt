@@ -1,37 +1,48 @@
 package kr.hhplus.be.server.application.event.listener
 
+import kr.hhplus.be.server.application.event.ReservationConfirmEvent
 import kr.hhplus.be.server.application.event.ReservationFailEvent
 import kr.hhplus.be.server.application.event.ReservationSuccessEvent
-import kr.hhplus.be.server.domain.concert.ConcertService
-import kr.hhplus.be.server.domain.external.DataPlatformApiClient
+import kr.hhplus.be.server.domain.reservation.ReservationMessageProducer
+import kr.hhplus.be.server.domain.reservation.ReservationOutboxService
 import org.slf4j.LoggerFactory
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class ReservationEventListener(
-	private val concertService: ConcertService,
-	private val dataPlatformApiClient: DataPlatformApiClient
+	private val reservationOutboxService: ReservationOutboxService,
+	private val reservationMessageProducer: ReservationMessageProducer,
 
-) {
+	) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
-	/**
-	 * 예약 완료 이후 데이터 플랫폼으로 예약 내역 전송
-	 */
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	fun handleReservationSuccessEvent(event: ReservationSuccessEvent) {
-		try {
-			dataPlatformApiClient.send(event.concertSeatId, event.reservationId)
-		} catch (e: Exception) {
-			log.error("예약 정보 데이터플랫폼 전달 실패 : ", e)
-		}
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	fun saveReservationInfoToOutbox(event: ReservationSuccessEvent) {
+		log.debug("예약 정보 outbox 저장 : event=$event")
+
+		reservationOutboxService.saveReservationDataPlatformMessage(event.toDataPlatformPayload())
 	}
 
-	@EventListener
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	fun handleReservationSuccessEvent(event: ReservationSuccessEvent) {
+		log.debug("예약 성공 - 데이터 플랫폼 전송 : event=$event")
+
+		reservationMessageProducer.sendReservationDataPlatformMessage(event.toDataPlatformPayload())
+	}
+
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	fun handleReservationFailEvent(event: ReservationFailEvent) {
-		concertService.rollbackPreoccupyConcertSeat(event.concertSeatId, event.originExpiredAt)
+		log.warn("예약 실패 - 좌선 선점 내역 롤백 요청 메세지 발행 : event=$event")
+
+		reservationMessageProducer.sendRollbackPreoccupyConcertSeatMessage(event.traceId)
+	}
+
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	fun saveReservationConfirmInfoToOutbox(event: ReservationConfirmEvent) {
+		log.debug("예약 확정 정보 outbox 저장 : event=$event")
+
+		reservationOutboxService.saveReservationConfirmInfo(event.toReservationConfirmPayload())
 	}
 }

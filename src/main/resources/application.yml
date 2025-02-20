@@ -25,6 +25,14 @@ spring:
       port: 6379
       host: localhost
       timeout: 5000
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      bootstrap-servers: localhost:9092
+    listener:
+      ack-mode: manual
 
 springdoc:
   swagger-ui:

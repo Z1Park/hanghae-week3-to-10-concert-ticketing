@@ -83,7 +83,7 @@ class UserServiceConcurrencyTest(
 		for (i in 0 until repeat) {
 			executors.execute {
 				try {
-					sut.use(userUUID, 500)
+					sut.use("thisistraceid", userUUID, 500)
 					successCount++
 				} catch (e: Exception) {
 					exceptions.add(e)

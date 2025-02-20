@@ -27,7 +27,7 @@ class PaymentServiceIntegrationTest(
 		val command = PaymentCommand.Create(1000, 1L, 3L)
 
 		// when
-		val actual = sut.pay(command)
+		val actual = sut.pay(command, "thisistraceid")
 
 		//then
 		val set = paymentJpaRepository.findByIdOrNull(actual.id)!!.toDomain()

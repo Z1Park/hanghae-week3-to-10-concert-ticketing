@@ -58,7 +58,7 @@ class ConcertServiceConcurrencyTest(
 		for (i in 0 until repeat) {
 			executors.execute {
 				try {
-					sut.preoccupyConcertSeat(command) { testTime }
+					sut.preoccupyConcertSeat(command, "thisistraceid") { testTime }
 					successCount++
 				} catch (e: Exception) {
 					exceptions.add(e)

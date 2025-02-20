@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.reservation
 
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.application.concert.ConcertApiClient
+import kr.hhplus.be.server.application.event.ReservationConfirmEvent
 import kr.hhplus.be.server.application.event.ReservationFailEvent
 import kr.hhplus.be.server.application.event.ReservationSuccessEvent
 import kr.hhplus.be.server.application.user.UserApiClient
@@ -48,8 +49,8 @@ class ReservationService(
 	}
 
 	@Transactional
-	fun reserve(command: ReservationCommand.Create, clockHolder: ClockHolder) {
-		val concertSeatReservationInfo = concertApiClient.concertApiPreoccupyConcert(command.toPreoccupyCommand())
+	fun reserve(command: ReservationCommand.Create, traceId: String, clockHolder: ClockHolder) {
+		val concertSeatReservationInfo = concertApiClient.concertApiPreoccupyConcert(command.toPreoccupyCommand(), traceId)
 
 		try {
 			val userInfo = userApiClient.userApiGetUserByUUID(command.userUUID)
@@ -75,29 +76,31 @@ class ReservationService(
 
 			applicationEventPublisher.publishEvent(
 				ReservationSuccessEvent(
+					traceId,
 					concertSeatReservationInfo.concertSeatId,
-					reservation.id
+					reservation.id,
+					userInfo.userId,
+					concertSeatReservationInfo.price,
 				)
 			)
 		} catch (e: Exception) {
 			log.error("예약 실패 및 롤백 시퀀스 실행 : ", e)
-			applicationEventPublisher.publishEvent(
-				ReservationFailEvent(
-					concertSeatReservationInfo.concertSeatId,
-					concertSeatReservationInfo.originExpiredAt
-				)
-			)
+			applicationEventPublisher.publishEvent(ReservationFailEvent(traceId))
 		}
 	}
 
 	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")
 	@Transactional
-	fun makeSoldOut(reservationId: Long) {
+	fun confirmReservation(reservationId: Long, traceId: String) {
 		val reservation = reservationRepository.findById(reservationId)
 			?: throw CustomException(ErrorCode.ENTITY_NOT_FOUND, "reservationId=$reservationId")
 
-		reservation.soldOut()
+		val originExpiredAt = reservation.expiredAt
+
+		reservation.confirm()
 		reservationRepository.save(reservation)
+
+		applicationEventPublisher.publishEvent(ReservationConfirmEvent(traceId, reservationId, originExpiredAt))
 	}
 
 	@DistributedLock(prefix = RESERVATION_KEY, key = "#reservationId")

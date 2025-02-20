@@ -82,7 +82,7 @@ class UserServiceIntegrationTest(
 		pointHistoryJpaRepository.save(pointHistory)
 
 		// when
-		sut.use(userUUID, useAmount)
+		sut.use("thisistraceid", userUUID, useAmount)
 
 		//then
 

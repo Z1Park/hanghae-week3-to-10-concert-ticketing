@@ -60,6 +60,9 @@ dependencies {
 	implementation("org.redisson:redisson-spring-boot-starter:3.18.0")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
+	// Kafka
+	implementation("org.springframework.kafka:spring-kafka")
+
 	// DOCS
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
@@ -72,6 +75,9 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("io.mockk:mockk:1.13.8")
 	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+	testImplementation("org.testcontainers:kafka")
+	testImplementation("org.awaitility:awaitility")
 }
 
 tasks.withType<Test> {

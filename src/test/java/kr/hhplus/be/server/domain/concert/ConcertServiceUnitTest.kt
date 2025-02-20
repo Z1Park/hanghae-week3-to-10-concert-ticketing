@@ -154,7 +154,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when
-		sut.preoccupyConcertSeat(command) { testTime }
+		sut.preoccupyConcertSeat(command, "thisistraceid") { testTime }
 
 		//then
 		val expiredAt = testTime.plusMinutes(5)
@@ -175,7 +175,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
+		assertThatThrownBy { sut.preoccupyConcertSeat(command, "thisistraceid") { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.NOT_MATCH_SCHEDULE)
@@ -195,7 +195,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
+		assertThatThrownBy { sut.preoccupyConcertSeat(command, "thisistraceid") { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.NOT_MATCH_SEAT)
@@ -219,7 +219,7 @@ class ConcertServiceUnitTest {
 		`when`(concertRepository.findSeat(3L)).then { seat }
 
 		// when then
-		assertThatThrownBy { sut.preoccupyConcertSeat(command) { testTime } }
+		assertThatThrownBy { sut.preoccupyConcertSeat(command, "thisistraceid") { testTime } }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ALREADY_RESERVED)
@@ -272,7 +272,7 @@ class ConcertServiceUnitTest {
 			.then { seat }
 
 		// when
-		sut.makeSoldOutConcertSeat(concertSeatId)
+		sut.makeSoldOutConcertSeat(concertSeatId, "thisistraceid")
 
 		//then
 		assertThat(seat.reservedUntil).isNull()
@@ -289,7 +289,7 @@ class ConcertServiceUnitTest {
 			.then { null }
 
 		// when  then
-		assertThatThrownBy { sut.makeSoldOutConcertSeat(concertSeatId) }
+		assertThatThrownBy { sut.makeSoldOutConcertSeat(concertSeatId, "thisistraceid") }
 			.isInstanceOf(CustomException::class.java)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.ENTITY_NOT_FOUND)

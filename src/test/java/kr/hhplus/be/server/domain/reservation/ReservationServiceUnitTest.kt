@@ -5,10 +5,7 @@ import kr.hhplus.be.server.application.concert.ConcertApiClient
 import kr.hhplus.be.server.application.user.UserApiClient
 import kr.hhplus.be.server.common.exception.CustomException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.concert.ConcertCommand
-import kr.hhplus.be.server.domain.concert.ConcertInfo
 import kr.hhplus.be.server.domain.reservation.model.Reservation
-import kr.hhplus.be.server.domain.user.UserInfo
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.instancio.Instancio
@@ -100,7 +97,7 @@ class ReservationServiceUnitTest {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.EXPIRED_RESERVATION)
 	}
-	
+
 	@Test
 	fun `결제 완료 시, 예약의 expiredAt이 null이 되고 저장하는 메서드를 호출한다`() {
 		// given
@@ -116,7 +113,7 @@ class ReservationServiceUnitTest {
 			.then { reservation }
 
 		// when
-		sut.makeSoldOut(reservationId)
+		sut.confirmReservation(reservationId, "thisistraceid")
 
 		//then
 		verify(reservationRepository).save(reservation)

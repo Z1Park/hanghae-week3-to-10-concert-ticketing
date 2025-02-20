@@ -76,3 +76,66 @@ CREATE TABLE `payment` (
     INDEX idx_reservation_id (reservation_id),
     UNIQUE unq_user_id_reservation_id (user_id, reservation_id)
 );
+
+CREATE TABLE reservation_outbox_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trace_id VARCHAR(50) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,        -- 'RESERVE', 'PAY'
+    event_status VARCHAR(100) NOT NULL,     -- 'CREATED', 'PROCESSED', 'ROLLBACKED', 'FAIL'
+    reservation_id BIGINT NOT NULL,
+    user_id BIGINT,
+    concert_seat_id BIGINT,
+    price INT,
+    origin_expired_at TIMESTAMP(6),
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+
+    INDEX idx_reservation_id (trace_id),
+    INDEX idx_event_status (event_status)
+);
+
+CREATE TABLE concert_outbox_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trace_id VARCHAR(50) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,        -- 'RESERVE', 'PAY'
+    event_status VARCHAR(100) NOT NULL,     -- 'CREATED', 'PROCESSED', 'ROLLBACKED', 'FAIL'
+    concert_id BIGINT,
+    concert_schedule_id BIGINT,
+    concert_seat_id BIGINT NOT NULL,
+    expired_at TIMESTAMP(6),
+    origin_expired_at TIMESTAMP(6),
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+
+    INDEX idx_concert_seat_id (trace_id)
+);
+
+CREATE TABLE payment_outbox_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trace_id VARCHAR(50) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,        -- 'RESERVE', 'PAY'
+    event_status VARCHAR(100) NOT NULL,     -- 'CREATED', 'PROCESSED', 'ROLLBACKED', 'FAIL'
+    payment_id BIGINT NOT NULL,
+    reservation_id BIGINT,
+    user_id BIGINT,
+    price INT,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+
+    INDEX idx_payment_id (trace_id),
+    INDEX idx_event_status (event_status)
+);
+
+CREATE TABLE user_point_outbox_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trace_id VARCHAR(50) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,        -- 'RESERVE', 'PAY'
+    event_status VARCHAR(100) NOT NULL,     -- 'CREATED', 'PROCESSED', 'ROLLBACKED', 'FAIL'
+    user_id BIGINT NOT NULL,
+    origin_balance INT,
+    point_history_id BIGINT,
+    created_at TIMESTAMP(6) NOT NULL,
+    updated_at TIMESTAMP(6) NOT NULL,
+
+    INDEX idx_payment_id (trace_id)
+);
